@@ -277,6 +277,3 @@ local Button = MainTab:CreateButton({
        lgame:GetService("VoiceChatService"):joinVoice()
    end,
 })
-Commit new file
-
-✓ initial commit
