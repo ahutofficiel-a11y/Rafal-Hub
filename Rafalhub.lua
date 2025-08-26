@@ -146,14 +146,14 @@ local Slider = MainTab:CreateSlider({
 })
 
 local Slider = MainTab:CreateSlider({
-   Name = "Fov slider",
-   Range = {0.5, 999},
-   Increment = 1,
-   Suffix = "Fov",
-   CurrentValue = 15,
+   Name = "JumpHeight slider",
+   Range = {7.5, 500},
+   Increment = 7.5,
+   Suffix = "Jump",
+   CurrentValue = 50,
    Flag = "Slider3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Players.CameraMaxZoomDistance = (Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpHeight = (Value)
    end,
 })
 
