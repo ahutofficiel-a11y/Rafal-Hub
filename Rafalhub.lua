@@ -153,7 +153,7 @@ local Slider = MainTab:CreateSlider({
    CurrentValue = 15,
    Flag = "Slider3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.CameraMaxZoomDistance = (Value)
+        game.Players.LocalPlayer.Character.Players.CameraMaxZoomDistance = (Value)
    end,
 })
 
