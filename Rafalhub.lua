@@ -245,6 +245,27 @@ teleportToCoords(targetPosition)
    end,
 })
 
+local MainSection = MainTab:CreateSection("Fun Squid Game! Glass Bridge 2")
+
+local Button = MainTab:CreateButton({
+   Name = "End",
+   Callback = function()
+       local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local targetPosition = Vector3.new(-114,14,-1329) -- X, Y, Z
+
+local function teleportToCoords(position)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(position)
+    end
+end
+
+task.wait(0.1)
+teleportToCoords(targetPosition)
+   end,
+})
+
 local MainTab = Window:CreateTab("ACS Killer", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("ACS 1.7.5 and ACS 2.0.1")
 
