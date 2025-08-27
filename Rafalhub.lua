@@ -89,21 +89,23 @@ local Button = MainTab:CreateButton({
 local Button = MainTab:CreateButton({
    Name = "Noclip",
    Callback = function()
-       local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
+    	local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local noclip = false
 
--- Détection simple : si la pièce est plus haute que large, on la considère comme un mur
+-- récupère le bouton
+local button = player:WaitForChild("PlayerGui"):WaitForChild("ScreenGui"):WaitForChild("TextButton")
+
+-- Détection simple : plus haut que large = mur
 local function isWall(part)
 	if not part:IsA("BasePart") then return false end
 	local size = part.Size
-	return size.Y > size.X and size.Y > size.Z -- plus haut que large = mur
+	return size.Y > size.X and size.Y > size.Z
 end
 
--- Active ou désactive les collisions des murs
+-- Active/désactive collisions des murs
 local function setWallsCanCollide(state)
 	for _, part in ipairs(workspace:GetDescendants()) do
 		if isWall(part) then
@@ -112,28 +114,24 @@ local function setWallsCanCollide(state)
 	end
 end
 
--- Toggle avec N
-UIS.InputBegan:Connect(function(input, gpe)
-	if gpe then return end
-	if input.KeyCode == Enum.KeyCode.N then
-		noclip = not noclip
-		if noclip then
-			setWallsCanCollide(false)
-			print("Noclip murs ACTIVÉ")
-		else
-			setWallsCanCollide(true)
-			print("Noclip murs DÉSACTIVÉ")
-		end
+-- Quand on clique sur le bouton
+button.MouseButton1Click:Connect(function()
+	noclip = not noclip
+	if noclip then
+		setWallsCanCollide(false)
+		button.Text = "Noclip Murs : ON"
+	else
+		setWallsCanCollide(true)
+		button.Text = "Noclip Murs : OFF"
 	end
 end)
 
--- Maintenir désactivé quand actif
+-- Maintenir les murs traversables si noclip activé
 RunService.Heartbeat:Connect(function()
 	if noclip then
 		setWallsCanCollide(false)
 	end
 end)
-
    end,
 })
 
