@@ -89,7 +89,51 @@ local Button = MainTab:CreateButton({
 local Button = MainTab:CreateButton({
    Name = "Noclip",
    Callback = function()
-       loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Noclip.lua"))()
+       local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local noclip = false
+
+-- Détection simple : si la pièce est plus haute que large, on la considère comme un mur
+local function isWall(part)
+	if not part:IsA("BasePart") then return false end
+	local size = part.Size
+	return size.Y > size.X and size.Y > size.Z -- plus haut que large = mur
+end
+
+-- Active ou désactive les collisions des murs
+local function setWallsCanCollide(state)
+	for _, part in ipairs(workspace:GetDescendants()) do
+		if isWall(part) then
+			part.CanCollide = state
+		end
+	end
+end
+
+-- Toggle avec N
+UIS.InputBegan:Connect(function(input, gpe)
+	if gpe then return end
+	if input.KeyCode == Enum.KeyCode.N then
+		noclip = not noclip
+		if noclip then
+			setWallsCanCollide(false)
+			print("Noclip murs ACTIVÉ")
+		else
+			setWallsCanCollide(true)
+			print("Noclip murs DÉSACTIVÉ")
+		end
+	end
+end)
+
+-- Maintenir désactivé quand actif
+RunService.Heartbeat:Connect(function()
+	if noclip then
+		setWallsCanCollide(false)
+	end
+end)
+
    end,
 })
 
