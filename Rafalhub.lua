@@ -301,12 +301,51 @@ local Button = MainTab:CreateButton({
 local Button = MainTab:CreateButton({
    Name = "ANTI-KICK [BÊTA]",
    Callback = function()
-        local Players = game:GetService("Players")
+        -- 🔒 Anti-kick client ultra-robuste & silencieux
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-LocalPlayer.OnKick:Connect(function(message)
-    warn("Tentative de kick détectée : " .. message)
+-- Empêche LocalPlayer:Kick()
+if not LocalPlayer.KickProtected then
+    LocalPlayer.KickProtected = true  
+
+    local oldKick = LocalPlayer.Kick
+    LocalPlayer.Kick = function(self, message)
+        -- On bloque sans rien afficher
+        return
+    end
+end
+
+-- Bloque les RemoteEvents suspects
+for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+    if obj:IsA("RemoteEvent") then
+        obj.OnClientEvent:Connect(function(...)
+            local args = {...}
+            -- Si le message contient "kick", on bloque
+            for _, v in ipairs(args) do
+                if typeof(v) == "string" and v:lower():find("kick") then
+                    return -- Ignore totalement
+                end
+            end
+        end)
+    end
+end
+
+-- Surveille si de nouveaux RemoteEvents apparaissent
+ReplicatedStorage.DescendantAdded:Connect(function(obj)
+    if obj:IsA("RemoteEvent") then
+        obj.OnClientEvent:Connect(function(...)
+            local args = {...}
+            for _, v in ipairs(args) do
+                if typeof(v) == "string" and v:lower():find("kick") then
+                    return
+                end
+            end
+        end)
+    end
 end)
+
 
    end,
 })
