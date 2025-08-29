@@ -38,7 +38,7 @@ local Window = Rayfield:CreateWindow({
 })
 
 local MainTab = Window:CreateTab("Informations", nil) -- Title, Image
-local MainSection = MainTab:CreateSection("main")
+local MainSection = MainTab:CreateSection("Main")
 
 Rayfield:Notify({
    Title = "Script Executed",
