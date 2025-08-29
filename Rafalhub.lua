@@ -47,10 +47,6 @@ Rayfield:Notify({
    Image = nil,
 })
 
-local Label = Tab:CreateLabel("Discord : https://discord.gg/m7Gzcy9tJt", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
-
-local Paragraph = Tab:CreateParagraph({Title = "Credits", Content = "This script was created by Peanut and Wesley/Thomas"})
-
 local MainTab = Window:CreateTab("Brookhaven", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Brookhaven Teleport")
 
