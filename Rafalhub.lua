@@ -51,7 +51,7 @@ local Label = MainTab:CreateLabel("Discord : https://discord.gg/m7Gzcy9tJt", 448
 
 local Paragraph = MainTab:CreateParagraph({Title = "Credits", Content = "This script was created by Peanut and Wesley/Thomas"})
 
-local MainTab = Window:CreateTab("normal", nil) -- Title, Image
+local MainTab = Window:CreateTab("Normal", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("All scripts")
 
 local Button = MainTab:CreateButton({
