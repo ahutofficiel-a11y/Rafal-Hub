@@ -38,13 +38,6 @@ local Window = Rayfield:CreateWindow({
 })
 
 local MainTab = Window:CreateTab("Informations", nil) -- Title, Image
-local MainSection = MainTab:CreateSection("All informations")
-
-local Label = Tab:CreateLabel("Discord : https://discord.gg/m7Gzcy9tJt", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
-
-local Paragraph = Tab:CreateParagraph({Title = "Credits", Content = "This script was created by Peanut and Wesley/Thomas"})
-
-local MainTab = Window:CreateTab("Home", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Main")
 
 Rayfield:Notify({
