@@ -199,7 +199,7 @@ local Slider = MainTab:CreateSlider({
    end,
 })
 
-local MainTab = Window:CreateTab("Teleport", nil) -- Title, Image
+local MainTab = Window:CreateTab("Brookhaven", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Brookhaven Teleport")
 
 local Button = MainTab:CreateButton({
@@ -278,6 +278,7 @@ teleportToCoords(targetPosition)
    end,
 })
 
+local MainTab = Window:CreateTab("Mega Obby", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Maga Obby Teleport")
 
 local Button = MainTab:CreateButton({
@@ -299,7 +300,8 @@ teleportToCoords(targetPosition)
    end,
 })
 
-local MainSection = MainTab:CreateSection("Fun Squid Game! Glass Bridge 2")
+local MainTab = Window:CreateTab("Fun Squid Game! Glass Bridge 2", nil) -- Title, Image
+local MainSection = MainTab:CreateSection("Fun Squid Game! Glass Bridge 2 teleport")
 
 local Button = MainTab:CreateButton({
    Name = "End",
