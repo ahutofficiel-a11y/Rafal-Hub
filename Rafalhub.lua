@@ -404,6 +404,6 @@ end)
 local Button = MainTab:CreateButton({
    Name = "Bypass Voice Chat",
    Callback = function()
-       lgame:GetService("VoiceChatService"):joinVoice()
+       game:GetService("VoiceChatService"):joinVoice()
    end,
 })
