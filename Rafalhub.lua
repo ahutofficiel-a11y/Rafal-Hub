@@ -62,6 +62,13 @@ local Button = MainTab:CreateButton({
 })
 
 local Button = MainTab:CreateButton({
+   Name = "Aimlock",
+   Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/ahutofficiel-a11y/Rafal-Hub/refs/heads/main/aimlock.lua"))()
+   end,
+})
+
+local Button = MainTab:CreateButton({
    Name = "God Mod",
    Callback = function()
        -- Script à placer dans ServerScriptService
