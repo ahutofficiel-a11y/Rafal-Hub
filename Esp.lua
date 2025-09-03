@@ -1,18 +1,15 @@
--- ESP COMPLET — LocalScript à mettre DANS ton TextButton (le bouton déjà créé)
--- Toggle ON/OFF à chaque clic
+-- ESP COMPLET — LocalScript à mettre dans ton TextButton
+-- Clique sur le bouton = active/désactive ESP
+-- Le texte du bouton NE CHANGE PAS
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 
 local localPlayer = Players.LocalPlayer
-local button = script.Parent  -- ton TextButton
+local button = script.Parent
+local playerConns = {}
 local espEnabled = false
 
--- Stocke les connexions pour pouvoir nettoyer
-local playerConns = {}
-
 -- ========= UTILITAIRES =========
-
 local function lerp(a, b, t) return a + (b - a) * t end
 local function colorLerpRGB(r1,g1,b1, r2,g2,b2, t)
 	return Color3.fromRGB(
@@ -33,7 +30,6 @@ local function ensureAttachment(part)
 	return att
 end
 
--- Crée un Beam (ligne 3D) entre 2 parties
 local function makeBeam(part0, part1, parentFolder)
 	if not (part0 and part1) then return nil end
 	local a0 = ensureAttachment(part0)
@@ -69,142 +65,103 @@ local function makeHealthBillboard(character, player, parentFolder)
 	billboard.MaxDistance = 200
 	billboard.Parent = parentFolder
 
-	-- Nom
 	local nameLabel = Instance.new("TextLabel")
 	nameLabel.Name = "Name"
 	nameLabel.BackgroundTransparency = 1
 	nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
-	nameLabel.Position = UDim2.new(0, 0, 0, 0)
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.TextScaled = true
 	nameLabel.TextColor3 = Color3.new(1,1,1)
 	nameLabel.TextStrokeTransparency = 0.5
-	nameLabel.Text = (player.DisplayName and #player.DisplayName>0) and player.DisplayName or player.Name
+	nameLabel.Text = player.Name
 	nameLabel.Parent = billboard
 
-	-- Barre de vie (fond)
 	local barBg = Instance.new("Frame")
-	barBg.Name = "BarBg"
 	barBg.BackgroundColor3 = Color3.fromRGB(30,30,30)
-	barBg.BackgroundTransparency = 0.2
 	barBg.BorderSizePixel = 0
 	barBg.Size = UDim2.new(1, 0, 0.4, 0)
 	barBg.Position = UDim2.new(0, 0, 0.6, 0)
 	barBg.Parent = billboard
 
-	-- Barre de vie (remplissage)
 	local barFill = Instance.new("Frame")
-	barFill.Name = "BarFill"
 	barFill.BackgroundColor3 = Color3.fromRGB(0,255,0)
 	barFill.BorderSizePixel = 0
 	barFill.Size = UDim2.new(1, 0, 1, 0)
 	barFill.Parent = barBg
 
-	-- Masque arrondi léger
-	for _,f in ipairs({barBg, barFill}) do
-		local ui = Instance.new("UICorner")
-		ui.CornerRadius = UDim.new(0, 4)
-		ui.Parent = f
-	end
-
-	-- Met à jour la barre
 	local function updateHealth()
-		if not humanoid then return end
-		local hp = math.max(humanoid.Health, 0)
-		local maxhp = math.max(humanoid.MaxHealth, 1)
-		local t = hp / maxhp
-		barFill.Size = UDim2.new(t, 0, 1, 0)
-		-- Vert -> Rouge
-		barFill.BackgroundColor3 = colorLerpRGB(255,0,0, 0,255,0, t)
-		nameLabel.Text = string.format("%s - %d HP", nameLabel.Text:match("^[^%-]+") or player.Name, math.floor(hp))
+		if humanoid then
+			local hp = math.max(humanoid.Health, 0)
+			local maxhp = math.max(humanoid.MaxHealth, 1)
+			local t = hp / maxhp
+			barFill.Size = UDim2.new(t, 0, 1, 0)
+			barFill.BackgroundColor3 = colorLerpRGB(255,0,0, 0,255,0, t)
+		end
 	end
 
 	if humanoid then
 		updateHealth()
 		humanoid.HealthChanged:Connect(updateHealth)
-		-- Si MaxHealth change (certains jeux), on rafraîchit
-		humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(updateHealth)
 	end
-
-	return billboard
 end
 
 local function makeHighlightAndBox(character, parentFolder)
-	-- Highlight (contour “officiel” Roblox)
 	local hl = Instance.new("Highlight")
-	hl.Name = "ESP_Highlight"
 	hl.FillTransparency = 1
 	hl.OutlineColor = Color3.fromRGB(255, 70, 70)
-	hl.OutlineTransparency = 0
 	hl.Adornee = character
 	hl.Parent = parentFolder
 
-	-- Box (boîte englobante)
 	local box = Instance.new("SelectionBox")
-	box.Name = "ESP_Box"
 	box.LineThickness = 0.04
 	box.SurfaceTransparency = 1
 	box.Color3 = Color3.fromRGB(255, 0, 0)
 	box.Adornee = character
 	box.Parent = parentFolder
-
-	return hl, box
 end
 
 local function buildSkeleton(character, parentFolder)
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not humanoid then return end
 
-	local isR15 = humanoid.RigType == Enum.HumanoidRigType.R15
+	local list
+	if humanoid.RigType == Enum.HumanoidRigType.R15 then
+		list = {
+			{"Head","UpperTorso"},
+			{"UpperTorso","LowerTorso"},
+			{"UpperTorso","LeftUpperArm"},
+			{"LeftUpperArm","LeftLowerArm"},
+			{"LeftLowerArm","LeftHand"},
+			{"UpperTorso","RightUpperArm"},
+			{"RightUpperArm","RightLowerArm"},
+			{"RightLowerArm","RightHand"},
+			{"LowerTorso","LeftUpperLeg"},
+			{"LeftUpperLeg","LeftLowerLeg"},
+			{"LeftLowerLeg","LeftFoot"},
+			{"LowerTorso","RightUpperLeg"},
+			{"RightUpperLeg","RightLowerLeg"},
+			{"RightLowerLeg","RightFoot"},
+		}
+	else
+		list = {
+			{"Head","Torso"},
+			{"Torso","Left Arm"},
+			{"Torso","Right Arm"},
+			{"Torso","Left Leg"},
+			{"Torso","Right Leg"},
+		}
+	end
 
-	local pairsR6 = {
-		{"Head","Torso"},
-		{"Torso","Left Arm"},
-		{"Torso","Right Arm"},
-		{"Torso","Left Leg"},
-		{"Torso","Right Leg"},
-	}
-
-	local pairsR15 = {
-		{"Head","UpperTorso"},
-		{"UpperTorso","LowerTorso"},
-
-		{"UpperTorso","LeftUpperArm"},
-		{"LeftUpperArm","LeftLowerArm"},
-		{"LeftLowerArm","LeftHand"},
-
-		{"UpperTorso","RightUpperArm"},
-		{"RightUpperArm","RightLowerArm"},
-		{"RightLowerArm","RightHand"},
-
-		{"LowerTorso","LeftUpperLeg"},
-		{"LeftUpperLeg","LeftLowerLeg"},
-		{"LeftLowerLeg","LeftFoot"},
-
-		{"LowerTorso","RightUpperLeg"},
-		{"RightUpperLeg","RightLowerLeg"},
-		{"RightLowerLeg","RightFoot"},
-	}
-
-	local bonesFolder = Instance.new("Folder")
-	bonesFolder.Name = "ESP_Bones"
-	bonesFolder.Parent = parentFolder
-
-	local list = isR15 and pairsR15 or pairsR6
 	for _,pair in ipairs(list) do
 		local a = character:FindFirstChild(pair[1])
 		local b = character:FindFirstChild(pair[2])
 		if a and b then
-			makeBeam(a, b, bonesFolder)
+			makeBeam(a, b, parentFolder)
 		end
 	end
-
-	return bonesFolder
 end
 
--- Crée/attache tout l’ESP sur un Character
-local function attachESPToCharacter(player, character)
-	-- Dossier pour tout retrouver/cleaner facilement
+local function attachESP(player, character)
 	local espFolder = Instance.new("Folder")
 	espFolder.Name = "ESP_Attachments"
 	espFolder.Parent = character
@@ -214,95 +171,60 @@ local function attachESPToCharacter(player, character)
 	makeHealthBillboard(character, player, espFolder)
 end
 
-local function removeESPFromCharacter(character)
-	if not character then return end
-	local f = character:FindFirstChild("ESP_Attachments")
-	if f then f:Destroy() end
-	-- Supprime aussi les Attachments ajoutés
-	for _,part in ipairs(character:GetDescendants()) do
-		if part:IsA("Attachment") and part.Name == "ESP_Attach" then
-			part:Destroy()
-		end
+local function removeESP(character)
+	if character and character:FindFirstChild("ESP_Attachments") then
+		character.ESP_Attachments:Destroy()
 	end
 end
 
 local function enableForPlayer(plr)
 	if plr == localPlayer then return end
-
-	local conns = {}
-	playerConns[plr] = conns
-
-	-- Quand le character spawn
 	local function onChar(char)
-		if not espEnabled then return end
-		-- Petite attente pour que les parties existent
 		task.wait(0.2)
-		attachESPToCharacter(plr, char)
+		if espEnabled then
+			attachESP(plr, char)
+		end
 	end
-
-	-- Déjà présent ?
 	if plr.Character then onChar(plr.Character) end
-	table.insert(conns, plr.CharacterAdded:Connect(onChar))
-	table.insert(conns, plr.CharacterRemoving:Connect(function(char)
-		removeESPFromCharacter(char)
-	end))
+	playerConns[plr] = {
+		plr.CharacterAdded:Connect(onChar),
+		plr.CharacterRemoving:Connect(removeESP)
+	}
 end
 
 local function disableForPlayer(plr)
-	-- Nettoie connexions
 	if playerConns[plr] then
 		for _,c in ipairs(playerConns[plr]) do
 			if c.Connected then c:Disconnect() end
 		end
 		playerConns[plr] = nil
 	end
-	-- Nettoie visuel
-	if plr.Character then
-		removeESPFromCharacter(plr.Character)
-	end
+	removeESP(plr.Character)
 end
 
 local function enableESP()
-	-- Pour tous les joueurs actuels
 	for _,plr in ipairs(Players:GetPlayers()) do
 		enableForPlayer(plr)
 	end
-	-- Pour les prochains
-	playerConns["_players"] = {
+	playerConns["_global"] = {
 		Players.PlayerAdded:Connect(enableForPlayer),
-		Players.PlayerRemoving:Connect(function(plr)
-			disableForPlayer(plr)
-		end),
+		Players.PlayerRemoving:Connect(disableForPlayer)
 	}
 end
 
 local function disableESP()
-	-- Retire pour tous
 	for _,plr in ipairs(Players:GetPlayers()) do
 		disableForPlayer(plr)
 	end
-	-- Retire listeners globaux
-	if playerConns["_players"] then
-		for _,c in ipairs(playerConns["_players"]) do
+	if playerConns["_global"] then
+		for _,c in ipairs(playerConns["_global"]) do
 			if c.Connected then c:Disconnect() end
 		end
-		playerConns["_players"] = nil
+		playerConns["_global"] = nil
 	end
 end
 
--- ========= TOGGLE BOUTON =========
-local function setButton(on)
-	if on then
-		button.Text = "ESP ON"
-		button.BackgroundColor3 = Color3.fromRGB(60, 180, 80)
-	else
-		button.Text = "ESP OFF"
-		button.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-	end
-end
-
-setButton(false)
-
+-- === Toggle avec le bouton (sans changer le texte du bouton)
 button.MouseButton1Click:Connect(function()
 	espEnabled = not espEnabled
 	if espEnabled then
@@ -310,5 +232,4 @@ button.MouseButton1Click:Connect(function()
 	else
 		disableESP()
 	end
-	setButton(espEnabled)
 end)
