@@ -1,68 +1,67 @@
--- LocalScript à mettre directement dans ton bouton
+-- Place ce script dans StarterPlayerScripts
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local Button = script.Parent
 
-local ESPEnabled = false
-local Highlights = {}
-
--- ajoute un ESP à un joueur
+-- Fonction pour ajouter un ESP (Highlight + pseudo)
 local function addESP(player)
-	if player == LocalPlayer then return end
-	if not player.Character then return end
-	if Highlights[player] then return end
+    if player ~= LocalPlayer then
+        local function onCharacterAdded(character)
+            -- Supprimer les anciens ESP si déjà présents
+            if character:FindFirstChild("AdminESP") then
+                character.AdminESP:Destroy()
+            end
+            if character:FindFirstChild("NameTag") then
+                character.NameTag:Destroy()
+            end
 
-	local highlight = Instance.new("Highlight")
-	highlight.Adornee = player.Character
-	highlight.FillTransparency = 0.7
-	highlight.OutlineTransparency = 0
-	highlight.FillColor = Color3.fromRGB(255, 0, 0) -- rouge
-	highlight.Parent = player.Character
+            -- Highlight (contour lumineux)
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "AdminESP"
+            highlight.Parent = character
+            highlight.Adornee = character
+            highlight.FillColor = Color3.fromRGB(0, 255, 0) -- Vert
+            highlight.OutlineColor = Color3.fromRGB(0, 0, 0)
+            highlight.FillTransparency = 0.5
 
-	Highlights[player] = highlight
+            -- BillboardGui pour le pseudo
+            local head = character:WaitForChild("Head", 5)
+            if head then
+                local billboard = Instance.new("BillboardGui")
+                billboard.Name = "NameTag"
+                billboard.Parent = head
+                billboard.Adornee = head
+                billboard.Size = UDim2.new(0, 200, 0, 50)
+                billboard.StudsOffset = Vector3.new(0, 2, 0)
+                billboard.AlwaysOnTop = true
+
+                local textLabel = Instance.new("TextLabel")
+                textLabel.Parent = billboard
+                textLabel.Size = UDim2.new(1, 0, 1, 0)
+                textLabel.BackgroundTransparency = 1
+                textLabel.Text = player.Name
+                textLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                textLabel.TextStrokeTransparency = 0
+                textLabel.TextScaled = true
+                textLabel.Font = Enum.Font.SourceSansBold
+            end
+        end
+
+        -- Si le joueur a déjà un perso
+        if player.Character then
+            onCharacterAdded(player.Character)
+        end
+
+        -- Quand le joueur respawn
+        player.CharacterAdded:Connect(onCharacterAdded)
+    end
 end
 
--- supprime un ESP d’un joueur
-local function removeESP(player)
-	if Highlights[player] then
-		Highlights[player]:Destroy()
-		Highlights[player] = nil
-	end
+-- Ajoute ESP aux joueurs déjà présents
+for _, player in ipairs(Players:GetPlayers()) do
+    addESP(player)
 end
 
--- active l’ESP
-local function enableESP()
-	for _, player in ipairs(Players:GetPlayers()) do
-		if player ~= LocalPlayer then
-			addESP(player)
-		end
-	end
-end
-
--- désactive l’ESP
-local function disableESP()
-	for _, player in ipairs(Players:GetPlayers()) do
-		removeESP(player)
-	end
-end
-
--- toggle quand on clique sur le bouton
-Button.MouseButton1Click:Connect(function()
-	ESPEnabled = not ESPEnabled
-	if ESPEnabled then
-		enableESP()
-		print("ESP ON")
-	else
-		disableESP()
-		print("ESP OFF")
-	end
-end)
-
--- gère les nouveaux joueurs / respawn
+-- Pour les nouveaux joueurs
 Players.PlayerAdded:Connect(function(player)
-	player.CharacterAdded:Connect(function()
-		if ESPEnabled then
-			addESP(player)
-		end
-	end)
+    addESP(player)
 end)
