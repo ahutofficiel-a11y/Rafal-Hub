@@ -87,44 +87,6 @@ end)
 })
 
 local Button = MainTab:CreateButton({
-   Name = "ESP",
-   Callback = function()
-       loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/WRD%20ESP.lua"))()
-   end,
-})
-
-local Button = MainTab:CreateButton({
-   Name = "Noclip",
-   Callback = function()
-    	local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local plr = Players.LocalPlayer
-local sc = nil
-local clip = false
-
-local button = script.Parent -- ton bouton
-
-button.MouseButton1Click:Connect(function()
-    clip = not clip
-    if clip then
-        sc = RunService.Stepped:Connect(function()
-            for _, part in pairs(workspace[plr.Name]:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end)
-    else
-        if sc then
-            sc:Disconnect()
-            sc = nil
-        end
-    end
-end)
-
-})
-
-local Button = MainTab:CreateButton({
    Name = "Give Tools",
    Callback = function()
        loadstring(game:HttpGet("https://pastefy.app/qpbQo0lr/raw"))()
