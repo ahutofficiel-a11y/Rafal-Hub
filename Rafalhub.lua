@@ -89,7 +89,7 @@ end)
 local Button = MainTab:CreateButton({
    Name = "ESP",
    Callback = function()
-       loadstring(game:HttpGet("https://raw.githubusercontent.com/ahutofficiel-a11y/Rafal-Hub/refs/heads/main/Esp.lua"))()
+       loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/WRD%20ESP.lua"))()
    end,
 })
 
@@ -98,48 +98,30 @@ local Button = MainTab:CreateButton({
    Callback = function()
     	local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local plr = Players.LocalPlayer
+local sc = nil
+local clip = false
 
-local player = Players.LocalPlayer
-local noclip = false
+local button = script.Parent -- ton bouton
 
--- récupère le bouton
-local button = player:WaitForChild("PlayerGui"):WaitForChild("ScreenGui"):WaitForChild("TextButton")
-
--- Détection simple : plus haut que large = mur
-local function isWall(part)
-	if not part:IsA("BasePart") then return false end
-	local size = part.Size
-	return size.Y > size.X and size.Y > size.Z
-end
-
--- Active/désactive collisions des murs
-local function setWallsCanCollide(state)
-	for _, part in ipairs(workspace:GetDescendants()) do
-		if isWall(part) then
-			part.CanCollide = state
-		end
-	end
-end
-
--- Quand on clique sur le bouton
 button.MouseButton1Click:Connect(function()
-	noclip = not noclip
-	if noclip then
-		setWallsCanCollide(false)
-		button.Text = "Noclip Murs : ON"
-	else
-		setWallsCanCollide(true)
-		button.Text = "Noclip Murs : OFF"
-	end
+    clip = not clip
+    if clip then
+        sc = RunService.Stepped:Connect(function()
+            for _, part in pairs(workspace[plr.Name]:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end)
+    else
+        if sc then
+            sc:Disconnect()
+            sc = nil
+        end
+    end
 end)
 
--- Maintenir les murs traversables si noclip activé
-RunService.Heartbeat:Connect(function()
-	if noclip then
-		setWallsCanCollide(false)
-	end
-end)
-   end,
 })
 
 local Button = MainTab:CreateButton({
