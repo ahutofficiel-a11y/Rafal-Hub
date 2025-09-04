@@ -1,12 +1,26 @@
--- Script Local à mettre dans ton bouton (ex: TextButton)
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
-local button = script.Parent
+local PlayerGui = localPlayer:WaitForChild("PlayerGui")
 
 local ESPEnabled = false
 local ESPConnections = {}
 local ESPFolders = {}
+
+-- Créer ScreenGui + Bouton
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ESP_UI"
+screenGui.Parent = PlayerGui
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 120, 0, 40)
+button.Position = UDim2.new(0.5, -60, 1, -60) -- centré en bas
+button.Text = "ESP"
+button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 22
+button.Parent = screenGui
 
 -- Détermine la couleur selon la team
 local function getTeamColor(player)
@@ -121,12 +135,17 @@ local function disableESP()
     end
 end
 
--- Toggle quand tu cliques sur le bouton
+-- Toggle au clic
 button.MouseButton1Click:Connect(function()
     ESPEnabled = not ESPEnabled
     if ESPEnabled then
         enableESP()
+        button.BackgroundColor3 = Color3.fromRGB(0, 170, 0) -- vert quand ON
     else
         disableESP()
+        button.BackgroundColor3 = Color3.fromRGB(170, 0, 0) -- rouge quand OFF
     end
 end)
+
+-- État initial OFF
+button.BackgroundColor3 = Color3.fromRGB(170, 0, 0)
