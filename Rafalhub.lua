@@ -4,7 +4,7 @@ local Window = Rayfield:CreateWindow({
    Name = "RAFAL HUB V1",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
    LoadingTitle = "RAFAL HUB",
-   LoadingSubtitle = "by Anonyme",
+   LoadingSubtitle = "by Cacahuète and Thomas/Wesley",
    ShowText = "Rayfield", -- for mobile users to unhide rayfield, change if you'd like
    Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
 
@@ -49,7 +49,7 @@ Rayfield:Notify({
 
 local Label = MainTab:CreateLabel("Discord : https://discord.gg/m7Gzcy9tJt", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
 
-local Paragraph = MainTab:CreateParagraph({Title = "Credits", Content = "This script was created by Peanut and Wesley/Thomas"})
+local Paragraph = MainTab:CreateParagraph({Title = "Credits", Content = "This script was created by Cacahuète and Wesley/Thomas"})
 
 local MainTab = Window:CreateTab("Normal", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("All scripts")
@@ -58,6 +58,13 @@ local Button = MainTab:CreateButton({
    Name = "Infinite Jump",
    Callback = function()
        loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Infinite%20Jump.lua"))()
+   end,
+})
+
+local Button = MainTab:CreateButton({
+   Name = "ESP",
+   Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/ahutofficiel-a11y/Rafal-Hub/refs/heads/main/Esp.lua"))()
    end,
 })
 
