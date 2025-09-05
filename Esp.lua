@@ -1,4 +1,3 @@
--- LocalScript dans StarterGui
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
@@ -34,14 +33,15 @@ stroke.Color = Color3.fromRGB(255, 0, 0)
 local function getTeamColor(player)
 	if player.Team and localPlayer.Team then
 		if player.Team == localPlayer.Team then
-			return Color3.fromRGB(0, 150, 255) -- bleu allié
+			return Color3.fromRGB(0, 150, 255) -- allié
 		else
-			return Color3.fromRGB(255, 80, 80) -- rouge ennemi
+			return Color3.fromRGB(255, 80, 80) -- ennemi
 		end
 	end
 	return Color3.fromRGB(80, 255, 80) -- neutre
 end
 
+-- === Création ESP ===
 local function createESP(player)
 	if player == localPlayer or not player.Character then return end
 	if ESPObjects[player] then return end
@@ -55,15 +55,27 @@ local function createESP(player)
 	espFolder.Parent = char
 	ESPObjects[player] = espFolder
 
-	-- === Box autour du joueur ===
+	-- === Box contour (wireframe) ===
 	local box = Instance.new("BoxHandleAdornment")
 	box.Name = "ESPBox"
 	box.Adornee = hrp
 	box.AlwaysOnTop = true
 	box.ZIndex = 0
-	box.Transparency = 0.7
+	box.Transparency = 0 -- visible
+	box.Alpha = 0
 	box.Color3 = getTeamColor(player)
 	box.Parent = espFolder
+	box.Transparency = 0 -- visible
+	box.AlwaysOnTop = true
+	box.ZIndex = 5
+	box.Size = Vector3.new(4, 6, 2) -- sera corrigé dynamiquement
+	box.Transparency = 0
+	box.AdornCullingMode = Enum.AdornCullingMode.Never
+	box.Visible = true
+	box.Transparency = 0.2
+	box.ZIndex = 0
+	box.AlwaysOnTop = true
+	box.Wireframe = true -- contour au lieu de bloc
 
 	-- === Pseudo au-dessus ===
 	local billboardName = Instance.new("BillboardGui")
@@ -125,6 +137,7 @@ local function createESP(player)
 	end)
 end
 
+-- === Suppression ESP ===
 local function removeESP(player)
 	if ESPObjects[player] then
 		if ESPObjects[player].Conn then
@@ -135,22 +148,26 @@ local function removeESP(player)
 	end
 end
 
+-- === Activation ===
 local function enableESP()
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= localPlayer then
 			if plr.Character then createESP(plr) end
-			plr.CharacterAdded:Connect(function() if ESPEnabled then createESP(plr) end end)
+			plr.CharacterAdded:Connect(function()
+				if ESPEnabled then createESP(plr) end
+			end)
 		end
 	end
 end
 
+-- === Désactivation ===
 local function disableESP()
 	for plr in pairs(ESPObjects) do
 		removeESP(plr)
 	end
 end
 
--- === Bouton toggle ===
+-- === Toggle bouton ===
 button.MouseButton1Click:Connect(function()
 	ESPEnabled = not ESPEnabled
 	if ESPEnabled then
