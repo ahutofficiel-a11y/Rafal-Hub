@@ -1,187 +1,168 @@
+-- LocalScript dans StarterGui
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
-local PlayerGui = localPlayer:WaitForChild("PlayerGui")
+local playerGui = localPlayer:WaitForChild("PlayerGui")
 
 local ESPEnabled = false
-local ESPConnections = {}
-local ESPFolders = {}
+local ESPObjects = {}
 
--- UI (bouton ESP stylisé)
+-- === UI Toggle ===
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ESP_UI"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = PlayerGui
+screenGui.Parent = playerGui
 
 local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 100, 0, 40)
+button.Size = UDim2.fromOffset(100, 40)
 button.Position = UDim2.new(0.5, -50, 1, -70)
 button.Text = "ESP"
-button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
 button.Font = Enum.Font.GothamBold
 button.TextSize = 20
-button.AutoButtonColor = true
+button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
 button.Parent = screenGui
 
--- arrondir le bouton
-local corner = Instance.new("UICorner")
+local corner = Instance.new("UICorner", button)
 corner.CornerRadius = UDim.new(0, 12)
-corner.Parent = button
 
--- petite ombre
-local stroke = Instance.new("UIStroke")
+local stroke = Instance.new("UIStroke", button)
 stroke.Thickness = 2
-stroke.Color = Color3.fromRGB(0, 200, 0)
-stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-stroke.Parent = button
+stroke.Color = Color3.fromRGB(255, 0, 0)
 
--- Couleur selon la team
+-- === Utilitaires ===
 local function getTeamColor(player)
-    if player.Team and localPlayer.Team then
-        if player.Team == localPlayer.Team then
-            return Color3.fromRGB(0, 150, 255) -- bleu allié
-        else
-            return Color3.fromRGB(255, 80, 80) -- rouge ennemi
-        end
-    end
-    return Color3.fromRGB(80, 255, 80) -- vert par défaut
+	if player.Team and localPlayer.Team then
+		if player.Team == localPlayer.Team then
+			return Color3.fromRGB(0, 150, 255) -- bleu allié
+		else
+			return Color3.fromRGB(255, 80, 80) -- rouge ennemi
+		end
+	end
+	return Color3.fromRGB(80, 255, 80) -- neutre
 end
 
--- Créer ESP
 local function createESP(player)
-    if player == localPlayer or not player.Character then return end
+	if player == localPlayer or not player.Character then return end
+	if ESPObjects[player] then return end
 
-    local espFolder = Instance.new("Folder")
-    espFolder.Name = "ESP_" .. player.Name
-    espFolder.Parent = player.Character
-    ESPFolders[player] = espFolder
+	local char = player.Character
+	local hrp = char:WaitForChild("HumanoidRootPart", 5)
+	if not hrp then return end
 
-    -- Pseudo au-dessus
-    local billboardName = Instance.new("BillboardGui")
-    billboardName.Size = UDim2.new(0, 200, 0, 40)
-    billboardName.AlwaysOnTop = true
-    billboardName.StudsOffset = Vector3.new(0, 3, 0)
-    billboardName.Parent = espFolder
+	local espFolder = Instance.new("Folder")
+	espFolder.Name = "ESP_" .. player.Name
+	espFolder.Parent = char
+	ESPObjects[player] = espFolder
 
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(1, 0, 1, 0)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.TextStrokeTransparency = 0
-    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    nameLabel.Font = Enum.Font.GothamBold
-    nameLabel.TextScaled = true
-    nameLabel.Parent = billboardName
+	-- === Box autour du joueur ===
+	local box = Instance.new("BoxHandleAdornment")
+	box.Name = "ESPBox"
+	box.Adornee = hrp
+	box.AlwaysOnTop = true
+	box.ZIndex = 0
+	box.Transparency = 0.7
+	box.Color3 = getTeamColor(player)
+	box.Parent = espFolder
 
-    -- Distance en-dessous
-    local billboardDist = Instance.new("BillboardGui")
-    billboardDist.Size = UDim2.new(0, 200, 0, 30)
-    billboardDist.AlwaysOnTop = true
-    billboardDist.StudsOffset = Vector3.new(0, -2, 0)
-    billboardDist.Parent = espFolder
+	-- === Pseudo au-dessus ===
+	local billboardName = Instance.new("BillboardGui")
+	billboardName.Size = UDim2.fromOffset(200, 40)
+	billboardName.AlwaysOnTop = true
+	billboardName.StudsOffset = Vector3.new(0, 3, 0)
+	billboardName.Adornee = hrp
+	billboardName.Parent = espFolder
 
-    local distLabel = Instance.new("TextLabel")
-    distLabel.Size = UDim2.new(1, 0, 1, 0)
-    distLabel.BackgroundTransparency = 1
-    distLabel.TextStrokeTransparency = 0
-    distLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    distLabel.Font = Enum.Font.GothamSemibold
-    distLabel.TextScaled = true
-    distLabel.Parent = billboardDist
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Size = UDim2.fromScale(1, 1)
+	nameLabel.Font = Enum.Font.GothamBold
+	nameLabel.TextScaled = true
+	nameLabel.TextStrokeTransparency = 0
+	nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	nameLabel.Text = player.Name
+	nameLabel.TextColor3 = getTeamColor(player)
+	nameLabel.Parent = billboardName
 
-    -- Box fine et transparente
-    local box = Instance.new("BoxHandleAdornment")
-    box.Name = "ESPBox"
-    box.Transparency = 0.8
-    box.AlwaysOnTop = true
-    box.ZIndex = 0
-    box.Adornee = player.Character
-    box.Parent = espFolder
+	-- === Distance en-dessous ===
+	local billboardDist = Instance.new("BillboardGui")
+	billboardDist.Size = UDim2.fromOffset(200, 30)
+	billboardDist.AlwaysOnTop = true
+	billboardDist.StudsOffset = Vector3.new(0, -3, 0)
+	billboardDist.Adornee = hrp
+	billboardDist.Parent = espFolder
 
-    -- Ligne discrète
-    local attachmentLocal = Instance.new("Attachment")
-    attachmentLocal.Parent = localPlayer.Character:WaitForChild("HumanoidRootPart")
+	local distLabel = Instance.new("TextLabel")
+	distLabel.BackgroundTransparency = 1
+	distLabel.Size = UDim2.fromScale(1, 1)
+	distLabel.Font = Enum.Font.GothamSemibold
+	distLabel.TextScaled = true
+	distLabel.TextStrokeTransparency = 0
+	distLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+	distLabel.TextColor3 = getTeamColor(player)
+	distLabel.Parent = billboardDist
 
-    local attachmentTarget = Instance.new("Attachment")
-    attachmentTarget.Parent = player.Character:WaitForChild("HumanoidRootPart")
+	-- === Update dynamique ===
+	ESPObjects[player].Conn = RunService.RenderStepped:Connect(function()
+		if not char.Parent then return end
+		local localHRP = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+		if not localHRP then return end
 
-    local beam = Instance.new("Beam")
-    beam.Attachment0 = attachmentLocal
-    beam.Attachment1 = attachmentTarget
-    beam.Transparency = NumberSequence.new(0.3) -- un peu transparent
-    beam.Width0 = 0.03
-    beam.Width1 = 0.03
-    beam.FaceCamera = true
-    beam.Parent = espFolder
+		-- Distance
+		local dist = (localHRP.Position - hrp.Position).Magnitude
+		distLabel.Text = string.format("[%dm]", math.floor(dist))
 
-    -- Mise à jour dynamique
-    ESPConnections[player] = RunService.RenderStepped:Connect(function()
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local distance = (localPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+		-- Box taille exacte
+		local cf, size = char:GetBoundingBox()
+		box.CFrame = cf
+		box.Size = size + Vector3.new(0.5, 0.5, 0.5)
 
-            local cf, size = player.Character:GetBoundingBox()
-            box.CFrame = cf
-            box.Size = size + Vector3.new(0.5, 0.5, 0.5) -- marge légère
-
-            local teamColor = getTeamColor(player)
-            nameLabel.Text = player.Name
-            nameLabel.TextColor3 = teamColor
-
-            distLabel.Text = "[" .. math.floor(distance) .. "m]"
-            distLabel.TextColor3 = teamColor
-
-            box.Color3 = teamColor
-            beam.Color = ColorSequence.new(teamColor)
-        end
-    end)
+		-- Couleurs
+		local col = getTeamColor(player)
+		nameLabel.TextColor3 = col
+		distLabel.TextColor3 = col
+		box.Color3 = col
+	end)
 end
 
--- Supprimer ESP
 local function removeESP(player)
-    if ESPConnections[player] then
-        ESPConnections[player]:Disconnect()
-        ESPConnections[player] = nil
-    end
-    if ESPFolders[player] then
-        ESPFolders[player]:Destroy()
-        ESPFolders[player] = nil
-    end
+	if ESPObjects[player] then
+		if ESPObjects[player].Conn then
+			ESPObjects[player].Conn:Disconnect()
+		end
+		ESPObjects[player]:Destroy()
+		ESPObjects[player] = nil
+	end
 end
 
--- Active ESP
 local function enableESP()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= localPlayer then
-            if player.Character then
-                createESP(player)
-            end
-            player.CharacterAdded:Connect(function()
-                if ESPEnabled then
-                    task.wait(1)
-                    createESP(player)
-                end
-            end)
-        end
-    end
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= localPlayer then
+			if plr.Character then createESP(plr) end
+			plr.CharacterAdded:Connect(function() if ESPEnabled then createESP(plr) end end)
+		end
+	end
 end
 
--- Désactive ESP
 local function disableESP()
-    for player, _ in pairs(ESPFolders) do
-        removeESP(player)
-    end
+	for plr in pairs(ESPObjects) do
+		removeESP(plr)
+	end
 end
 
--- Toggle bouton
+-- === Bouton toggle ===
 button.MouseButton1Click:Connect(function()
-    ESPEnabled = not ESPEnabled
-    if ESPEnabled then
-        enableESP()
-        button.BackgroundColor3 = Color3.fromRGB(30, 120, 30)
-        stroke.Color = Color3.fromRGB(0, 255, 0)
-    else
-        disableESP()
-        button.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
-        stroke.Color = Color3.fromRGB(255, 0, 0)
-    end
+	ESPEnabled = not ESPEnabled
+	if ESPEnabled then
+		enableESP()
+		button.BackgroundColor3 = Color3.fromRGB(30, 120, 30)
+		stroke.Color = Color3.fromRGB(0, 255, 0)
+	else
+		disableESP()
+		button.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
+		stroke.Color = Color3.fromRGB(255, 0, 0)
+	end
 end)
+
+-- reset OFF
+button.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
