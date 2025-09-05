@@ -3,39 +3,46 @@ local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
 local camera = workspace.CurrentCamera
 local RunService = game:GetService("RunService")
-local Teams = game:GetService("Teams")
+local Players = game:GetService("Players")
+
+local aimlockEnabled = false
 local lockedTarget = nil
 
--- Fonction pour vérifier la ligne de vue (wall check)
+-- Fonction wall check moderne
 local function canSee(target)
     local origin = camera.CFrame.Position
     local targetPos = target.Head.Position
-    local ray = Ray.new(origin, (targetPos - origin))
-    local hit = workspace:FindPartOnRay(ray, player.Character)
-    if hit then
-        return hit:IsDescendantOf(target)
+    local rayParams = RaycastParams.new()
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    rayParams.FilterDescendantsInstances = {player.Character}
+
+    local result = workspace:Raycast(origin, targetPos - origin, rayParams)
+    if result then
+        return result.Instance:IsDescendantOf(target)
+    else
+        return true
     end
-    return true
 end
 
--- Fonction pour trouver l'ennemi le plus proche
+-- Trouver l'ennemi le plus proche
 local function getClosestTarget()
     local closest = nil
     local shortestDist = math.huge
 
-    for _, character in pairs(workspace:GetChildren()) do
-        if character:FindFirstChild("Humanoid") and character:FindFirstChild("Head") and character ~= player.Character then
-            -- Team check
-            if character:FindFirstChild("Team") and character.Team == player.Team then
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Humanoid") and otherPlayer.Character:FindFirstChild("Head") then
+            -- Ne pas lock les coéquipiers
+            if player.Team and otherPlayer.Team == player.Team then
                 continue
             end
 
-            local pos, onScreen = camera:WorldToViewportPoint(character.Head.Position)
-            if onScreen and canSee(character) then
-                local mouseDist = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+            local headPos = otherPlayer.Character.Head.Position
+            local screenPos, onScreen = camera:WorldToViewportPoint(headPos)
+            if onScreen and canSee(otherPlayer.Character) then
+                local mouseDist = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(screenPos.X, screenPos.Y)).Magnitude
                 if mouseDist < shortestDist then
                     shortestDist = mouseDist
-                    closest = character
+                    closest = otherPlayer.Character
                 end
             end
         end
@@ -44,22 +51,23 @@ local function getClosestTarget()
     return closest
 end
 
--- Boucle de visée
-RunService.RenderStepped:Connect(function()
-    if lockedTarget and lockedTarget:FindFirstChild("Head") then
-        camera.CFrame = CFrame.new(camera.CFrame.Position, lockedTarget.Head.Position)
-    end
+-- Activer aimlock quand clic droit est appuyé
+mouse.Button2Down:Connect(function()
+    aimlockEnabled = true
 end)
 
--- Activation / désactivation avec le clic droit
-mouse.Button2Down:Connect(function() -- clic droit
-    if lockedTarget then
-        lockedTarget = nil
-        print("Aimlock désactivé")
-    else
+-- Désactiver aimlock quand clic droit relâché
+mouse.Button2Up:Connect(function()
+    aimlockEnabled = false
+    lockedTarget = nil
+end)
+
+-- Boucle de visée
+RunService.RenderStepped:Connect(function()
+    if aimlockEnabled then
         lockedTarget = getClosestTarget()
-        if lockedTarget then
-            print("Aimlock sur :", lockedTarget.Name)
+        if lockedTarget and lockedTarget:FindFirstChild("Head") then
+            camera.CFrame = CFrame.new(camera.CFrame.Position, lockedTarget.Head.Position)
         end
     end
 end)
