@@ -1,174 +1,184 @@
--- Services
+-- ESP Debug / Modération
+-- Highlight + Nom + Distance
+-- Détection alliés / ennemis + GUI toggle
+
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
 
-local localPlayer = Players.LocalPlayer
-local playerGui = localPlayer:WaitForChild("PlayerGui")
+-- OPTIONS
+local SHOW_SELF = false -- afficher ton propre joueur ?
 
--- Variables
-local ESPEnabled = false
-local ESPObjects = {}
+-- état ESP
+local espEnabled = true
+local cache = {}
 
--- === UI Toggle ===
+-- couleurs
+local ALLY_COLOR = Color3.fromRGB(0, 255, 100)
+local ENEMY_COLOR = Color3.fromRGB(255, 80, 80)
+local NEUTRAL_COLOR = Color3.fromRGB(255, 255, 255)
+
+---------------------------------------------------------------------
+-- GUI (bouton On/Off)
+---------------------------------------------------------------------
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ESP_UI"
+screenGui.Name = "ESP_ToggleGUI"
 screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.fromOffset(100, 40)
-button.Position = UDim2.new(0.5, -50, 1, -70)
-button.Text = "ESP"
-button.Font = Enum.Font.GothamBold
-button.TextSize = 20
-button.BackgroundColor3 = Color3.fromRGB(120, 30, 30) -- OFF = rouge
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.Parent = screenGui
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 100, 0, 40)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggleButton.TextColor3 = Color3.new(1,1,1)
+toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.Text = "ESP: ON"
+toggleButton.Parent = screenGui
 
-local corner = Instance.new("UICorner", button)
-corner.CornerRadius = UDim.new(0, 12)
-
-local stroke = Instance.new("UIStroke", button)
-stroke.Thickness = 2
-stroke.Color = Color3.fromRGB(255, 0, 0)
-
--- === Utilitaires ===
-local function getTeamColor(player)
-	if player.Team and localPlayer.Team then
-		if player.Team == localPlayer.Team then
-			return Color3.fromRGB(0, 150, 255) -- allié
-		else
-			return Color3.fromRGB(255, 80, 80) -- ennemi
-		end
-	end
-	return Color3.fromRGB(80, 255, 80) -- neutre
+local function updateButton()
+    toggleButton.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+    toggleButton.BackgroundColor3 = espEnabled and Color3.fromRGB(50, 150, 50) or Color3.fromRGB(150, 50, 50)
 end
 
--- === Création ESP ===
-local function createESP(player)
-	if player == localPlayer then return end
-	if ESPObjects[player] then return end
-	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-
-	local char = player.Character
-	local hrp = char:WaitForChild("HumanoidRootPart")
-
-	local espFolder = Instance.new("Folder")
-	espFolder.Name = "ESP_" .. player.Name
-	espFolder.Parent = char
-	ESPObjects[player] = espFolder
-
-	-- Box contour (wireframe)
-	local box = Instance.new("BoxHandleAdornment")
-	box.Adornee = hrp
-	box.AlwaysOnTop = true
-	box.ZIndex = 5
-	box.Transparency = 0
-	box.Color3 = getTeamColor(player)
-	box.Wireframe = true
-	box.Size = Vector3.new(4, 6, 2)
-	box.Parent = espFolder
-
-	-- Pseudo
-	local nameGui = Instance.new("BillboardGui")
-	nameGui.Size = UDim2.fromOffset(200, 40)
-	nameGui.AlwaysOnTop = true
-	nameGui.StudsOffset = Vector3.new(0, 3, 0)
-	nameGui.Adornee = hrp
-	nameGui.Parent = espFolder
-
-	local nameLabel = Instance.new("TextLabel")
-	nameLabel.Size = UDim2.fromScale(1, 1)
-	nameLabel.BackgroundTransparency = 1
-	nameLabel.Font = Enum.Font.GothamBold
-	nameLabel.TextScaled = true
-	nameLabel.TextStrokeTransparency = 0
-	nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-	nameLabel.Text = player.Name
-	nameLabel.TextColor3 = getTeamColor(player)
-	nameLabel.Parent = nameGui
-
-	-- Distance
-	local distGui = Instance.new("BillboardGui")
-	distGui.Size = UDim2.fromOffset(200, 30)
-	distGui.AlwaysOnTop = true
-	distGui.StudsOffset = Vector3.new(0, -3, 0)
-	distGui.Adornee = hrp
-	distGui.Parent = espFolder
-
-	local distLabel = Instance.new("TextLabel")
-	distLabel.Size = UDim2.fromScale(1, 1)
-	distLabel.BackgroundTransparency = 1
-	distLabel.Font = Enum.Font.GothamSemibold
-	distLabel.TextScaled = true
-	distLabel.TextStrokeTransparency = 0
-	distLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-	distLabel.TextColor3 = getTeamColor(player)
-	distLabel.Parent = distGui
-
-	-- Update dynamique
-	ESPObjects[player].Conn = RunService.RenderStepped:Connect(function()
-		if not char.Parent then return end
-		local localHRP = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
-		if not localHRP then return end
-
-		-- Distance
-		local dist = (localHRP.Position - hrp.Position).Magnitude
-		distLabel.Text = string.format("[%dm]", math.floor(dist))
-
-		-- Taille box
-		local cf, size = char:GetBoundingBox()
-		box.CFrame = cf
-		box.Size = size + Vector3.new(0.3, 0.3, 0.3)
-
-		-- Couleur
-		local col = getTeamColor(player)
-		nameLabel.TextColor3 = col
-		distLabel.TextColor3 = col
-		box.Color3 = col
-	end)
-end
-
--- === Suppression ESP ===
-local function removeESP(player)
-	if ESPObjects[player] then
-		if ESPObjects[player].Conn then
-			ESPObjects[player].Conn:Disconnect()
-		end
-		ESPObjects[player]:Destroy()
-		ESPObjects[player] = nil
-	end
-end
-
--- === Activation ===
-local function enableESP()
-	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= localPlayer then
-			createESP(plr)
-			plr.CharacterAdded:Connect(function()
-				if ESPEnabled then createESP(plr) end
-			end)
-		end
-	end
-end
-
--- === Désactivation ===
-local function disableESP()
-	for plr in pairs(ESPObjects) do
-		removeESP(plr)
-	end
-end
-
--- === Toggle bouton ===
-button.MouseButton1Click:Connect(function()
-	ESPEnabled = not ESPEnabled
-	if ESPEnabled then
-		enableESP()
-		button.BackgroundColor3 = Color3.fromRGB(30, 120, 30) -- ON = vert
-		stroke.Color = Color3.fromRGB(0, 255, 0)
-	else
-		disableESP()
-		button.BackgroundColor3 = Color3.fromRGB(120, 30, 30) -- OFF = rouge
-		stroke.Color = Color3.fromRGB(255, 0, 0)
-	end
+toggleButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    updateButton()
 end)
+
+---------------------------------------------------------------------
+-- ESP logic
+---------------------------------------------------------------------
+
+local function getRelationColor(player)
+    if LocalPlayer.Team and player.Team then
+        if LocalPlayer.Team == player.Team then
+            return ALLY_COLOR
+        else
+            return ENEMY_COLOR
+        end
+    else
+        return NEUTRAL_COLOR
+    end
+end
+
+-- crée ESP pour un personnage
+local function createESP(player, char)
+    if not char or cache[player] then return end
+
+    -- Highlight
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "DevESP_Highlight"
+    highlight.Adornee = char
+    highlight.FillTransparency = 1
+    highlight.OutlineTransparency = 0
+    highlight.OutlineColor = getRelationColor(player)
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = char
+
+    -- Billboard
+    local head = char:FindFirstChild("Head")
+    local billboard
+    if head then
+        billboard = Instance.new("BillboardGui")
+        billboard.Name = "DevESP_Billboard"
+        billboard.Adornee = head
+        billboard.Size = UDim2.new(0, 150, 0, 30)
+        billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Parent = char
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.TextScaled = true
+        label.Font = Enum.Font.SourceSansBold
+        label.TextStrokeTransparency = 0.5
+        label.TextColor3 = Color3.new(1,1,1)
+        label.Text = player.Name
+        label.Parent = billboard
+    end
+
+    cache[player] = {highlight = highlight, billboard = billboard}
+end
+
+-- retire ESP
+local function removeESP(player)
+    local entry = cache[player]
+    if entry then
+        if entry.highlight then entry.highlight:Destroy() end
+        if entry.billboard then entry.billboard:Destroy() end
+        cache[player] = nil
+    end
+end
+
+-- update boucle
+local function updateESP()
+    local lpChar = LocalPlayer.Character
+    local lpRoot = lpChar and lpChar:FindFirstChild("HumanoidRootPart")
+    for player, entry in pairs(cache) do
+        if player.Character and player.Character.PrimaryPart and lpRoot then
+            local dist = (lpRoot.Position - player.Character.PrimaryPart.Position).Magnitude
+            -- texte
+            if entry.billboard then
+                local label = entry.billboard:FindFirstChildOfClass("TextLabel")
+                if label then
+                    label.Text = string.format("%s — %d studs", player.Name, dist)
+                end
+                entry.billboard.Enabled = espEnabled
+            end
+            -- couleur + toggle
+            if entry.highlight then
+                entry.highlight.OutlineColor = getRelationColor(player)
+                entry.highlight.Enabled = espEnabled
+            end
+        end
+    end
+end
+
+-- gestion des joueurs
+local function onCharacterAdded(player, char)
+    task.wait(1)
+    createESP(player, char)
+    char.AncestryChanged:Connect(function(_, parent)
+        if not parent then removeESP(player) end
+    end)
+end
+
+local function onPlayerAdded(player)
+    if player == LocalPlayer and not SHOW_SELF then return end
+    player.CharacterAdded:Connect(function(char) onCharacterAdded(player, char) end)
+    if player.Character then onCharacterAdded(player, player.Character) end
+end
+
+local function onPlayerRemoving(player)
+    removeESP(player)
+end
+
+-- toggle via touche E
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.E then
+        espEnabled = not espEnabled
+        updateButton()
+    end
+end)
+
+-- boucle update
+task.spawn(function()
+    while true do
+        updateESP()
+        task.wait(0.1)
+    end
+end)
+
+-- init
+for _, p in ipairs(Players:GetPlayers()) do
+    if p ~= LocalPlayer or SHOW_SELF then
+        onPlayerAdded(p)
+    end
+end
+Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(onPlayerRemoving)
+
+updateButton()
+print("ESP chargé : bouton GUI + touche E")
