@@ -18,7 +18,7 @@ button.Position = UDim2.new(0.5, -50, 1, -70)
 button.Text = "ESP"
 button.Font = Enum.Font.GothamBold
 button.TextSize = 20
-button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+button.BackgroundColor3 = Color3.fromRGB(120, 30, 30) -- rouge par défaut (OFF)
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
 button.Parent = screenGui
 
@@ -43,12 +43,12 @@ end
 
 -- === Création ESP ===
 local function createESP(player)
-	if player == localPlayer or not player.Character then return end
+	if player == localPlayer then return end
 	if ESPObjects[player] then return end
+	if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
 
 	local char = player.Character
-	local hrp = char:WaitForChild("HumanoidRootPart", 5)
-	if not hrp then return end
+	local hrp = char:WaitForChild("HumanoidRootPart")
 
 	local espFolder = Instance.new("Folder")
 	espFolder.Name = "ESP_" .. player.Name
@@ -60,22 +60,12 @@ local function createESP(player)
 	box.Name = "ESPBox"
 	box.Adornee = hrp
 	box.AlwaysOnTop = true
-	box.ZIndex = 0
-	box.Transparency = 0 -- visible
-	box.Alpha = 0
-	box.Color3 = getTeamColor(player)
-	box.Parent = espFolder
-	box.Transparency = 0 -- visible
-	box.AlwaysOnTop = true
 	box.ZIndex = 5
-	box.Size = Vector3.new(4, 6, 2) -- sera corrigé dynamiquement
 	box.Transparency = 0
-	box.AdornCullingMode = Enum.AdornCullingMode.Never
-	box.Visible = true
-	box.Transparency = 0.2
-	box.ZIndex = 0
-	box.AlwaysOnTop = true
+	box.Color3 = getTeamColor(player)
 	box.Wireframe = true -- contour au lieu de bloc
+	box.Size = Vector3.new(4, 6, 2) -- ajusté plus bas
+	box.Parent = espFolder
 
 	-- === Pseudo au-dessus ===
 	local billboardName = Instance.new("BillboardGui")
@@ -127,7 +117,7 @@ local function createESP(player)
 		-- Box taille exacte
 		local cf, size = char:GetBoundingBox()
 		box.CFrame = cf
-		box.Size = size + Vector3.new(0.5, 0.5, 0.5)
+		box.Size = size + Vector3.new(0.3, 0.3, 0.3)
 
 		-- Couleurs
 		local col = getTeamColor(player)
@@ -152,12 +142,14 @@ end
 local function enableESP()
 	for _, plr in ipairs(Players:GetPlayers()) do
 		if plr ~= localPlayer then
-			if plr.Character then createESP(plr) end
-			plr.CharacterAdded:Connect(function()
-				if ESPEnabled then createESP(plr) end
-			end)
+			createESP(plr)
 		end
 	end
+	Players.PlayerAdded:Connect(function(plr)
+		plr.CharacterAdded:Connect(function()
+			if ESPEnabled then createESP(plr) end
+		end)
+	end)
 end
 
 -- === Désactivation ===
@@ -180,6 +172,3 @@ button.MouseButton1Click:Connect(function()
 		stroke.Color = Color3.fromRGB(255, 0, 0)
 	end
 end)
-
--- reset OFF
-button.BackgroundColor3 = Color3.fromRGB(120, 30, 30)
