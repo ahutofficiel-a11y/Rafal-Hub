@@ -243,6 +243,28 @@ teleportToCoords(targetPosition)
    end,
 })
 
+local MainTab = Window:CreateTab("Obby but you're on a bike", nil) -- Title, Image
+local MainSection = MainTab:CreateSection("Obby but you're on a bike")
+
+local Button = MainTab:CreateButton({
+   Name = "End wolrd 1",
+   Callback = function()
+       local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local targetPosition = Vector3.new(107.98, -3.50, -20964.24) -- X, Y, Z
+
+local function teleportToCoords(position)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(position)
+    end
+end
+
+task.wait(0.1)
+teleportToCoords(targetPosition)
+   end,
+})
+
 local MainTab = Window:CreateTab("Mega Obby", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Maga Obby Teleport")
 
