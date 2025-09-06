@@ -247,12 +247,31 @@ local MainTab = Window:CreateTab("Obby but you're on a bike", nil) -- Title, Ima
 local MainSection = MainTab:CreateSection("Obby but you're on a bike")
 
 local Button = MainTab:CreateButton({
-   Name = "End wolrd 1",
+   Name = "End world 2",
    Callback = function()
        local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 local targetPosition = Vector3.new(107.98, -3.50, -20964.24) -- X, Y, Z
+
+local function teleportToCoords(position)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(position)
+    end
+end
+
+task.wait(0.1)
+teleportToCoords(targetPosition)
+   end,
+})
+
+local Button = MainTab:CreateButton({
+   Name = "End world 3",
+   Callback = function()
+       local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local targetPosition = Vector3.new(110.58, -3.54, -13636.29) -- X, Y, Z
 
 local function teleportToCoords(position)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
