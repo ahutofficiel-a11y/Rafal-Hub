@@ -1,5 +1,5 @@
 -- ESP Debug / Modération
--- Highlight + Nom + Distance
+-- Highlight + Nom + Distance + Vie
 -- Détection alliés / ennemis + GUI toggle
 -- Auto-ajout quand joueur rejoint ou respawn
 
@@ -67,7 +67,7 @@ end
 local function createESP(player, char)
     if not char then return end
 
-    -- cleanup ancien ESP si existait
+    -- cleanup ancien ESP
     if cache[player] then
         if cache[player].highlight then cache[player].highlight:Destroy() end
         if cache[player].billboard then cache[player].billboard:Destroy() end
@@ -84,30 +84,62 @@ local function createESP(player, char)
     highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     highlight.Parent = char
 
-    -- Billboard
+    -- Billboard (2 lignes : Nom+distance + Vie)
     local head = char:FindFirstChild("Head")
     local billboard
+    local nameLabel, hpLabel
     if head then
         billboard = Instance.new("BillboardGui")
         billboard.Name = "DevESP_Billboard"
         billboard.Adornee = head
-        billboard.Size = UDim2.new(0, 150, 0, 30)
+        billboard.Size = UDim2.new(0, 200, 0, 50)
         billboard.StudsOffset = Vector3.new(0, 2.5, 0)
         billboard.AlwaysOnTop = true
         billboard.Parent = char
 
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, 0, 1, 0)
-        label.BackgroundTransparency = 1
-        label.TextScaled = true
-        label.Font = Enum.Font.SourceSansBold
-        label.TextStrokeTransparency = 0.5
-        label.TextColor3 = Color3.new(1,1,1)
-        label.Text = player.Name
-        label.Parent = billboard
+        -- cadre
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        frame.BackgroundTransparency = 1
+        frame.Parent = billboard
+
+        -- Nom + distance
+        nameLabel = Instance.new("TextLabel")
+        nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+        nameLabel.Position = UDim2.new(0, 0, 0, 0)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.TextScaled = true
+        nameLabel.Font = Enum.Font.SourceSansBold
+        nameLabel.TextStrokeTransparency = 0.5
+        nameLabel.TextColor3 = Color3.new(1,1,1)
+        nameLabel.Text = player.Name
+        nameLabel.Parent = frame
+
+        -- Vie
+        hpLabel = Instance.new("TextLabel")
+        hpLabel.Size = UDim2.new(1, 0, 0.5, 0)
+        hpLabel.Position = UDim2.new(0, 0, 0.5, 0)
+        hpLabel.BackgroundTransparency = 1
+        hpLabel.TextScaled = true
+        hpLabel.Font = Enum.Font.SourceSans
+        hpLabel.TextStrokeTransparency = 0.7
+        hpLabel.TextColor3 = Color3.new(0.8, 1, 0.8)
+        hpLabel.Text = "Vie : ..."
+        hpLabel.Parent = frame
     end
 
-    cache[player] = {highlight = highlight, billboard = billboard}
+    cache[player] = {highlight = highlight, billboard = billboard, nameLabel = nameLabel, hpLabel = hpLabel}
+
+    -- met à jour la vie en temps réel
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid and hpLabel then
+        local function updateHP()
+            hpLabel.Text = string.format("Vie : %d / %d", math.floor(humanoid.Health), math.floor(humanoid.MaxHealth))
+        end
+        humanoid.HealthChanged:Connect(updateHP)
+        humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(updateHP)
+        updateHP()
+    end
 end
 
 -- retire ESP
@@ -127,15 +159,12 @@ local function updateESP()
     for player, entry in pairs(cache) do
         if player.Character and player.Character.PrimaryPart and lpRoot then
             local dist = (lpRoot.Position - player.Character.PrimaryPart.Position).Magnitude
-            -- texte
-            if entry.billboard then
-                local label = entry.billboard:FindFirstChildOfClass("TextLabel")
-                if label then
-                    label.Text = string.format("%s — %d studs", player.Name, dist)
-                end
-                entry.billboard.Enabled = espEnabled
+            -- texte (nom + distance)
+            if entry.nameLabel then
+                entry.nameLabel.Text = string.format("%s — %d studs", player.Name, dist)
             end
-            -- couleur + toggle
+            -- toggle
+            if entry.billboard then entry.billboard.Enabled = espEnabled end
             if entry.highlight then
                 entry.highlight.OutlineColor = getRelationColor(player)
                 entry.highlight.Enabled = espEnabled
@@ -146,9 +175,8 @@ end
 
 -- gestion des joueurs
 local function onCharacterAdded(player, char)
-    task.wait(0.5) -- laisse le perso se charger
+    task.wait(0.5) -- attendre le chargement
     createESP(player, char)
-    -- si le perso meurt et disparaît → cleanup auto
     char:WaitForChild("Humanoid").Died:Connect(function()
         removeESP(player)
     end)
@@ -156,11 +184,9 @@ end
 
 local function onPlayerAdded(player)
     if player == LocalPlayer and not SHOW_SELF then return end
-    -- quand un joueur respawn → recrée ESP
     player.CharacterAdded:Connect(function(char)
         onCharacterAdded(player, char)
     end)
-    -- si il a déjà un perso (existant avant ton join)
     if player.Character then
         onCharacterAdded(player, player.Character)
     end
@@ -196,4 +222,4 @@ Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 
 updateButton()
-print("ESP chargé : bouton GUI + touche E + auto-refresh sur join/respawn")
+print("ESP chargé : Nom + Distance + Vie")
