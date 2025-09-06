@@ -1,6 +1,7 @@
 -- ESP Debug / Modération
 -- Highlight + Nom + Distance
 -- Détection alliés / ennemis + GUI toggle
+-- Auto-ajout quand joueur rejoint ou respawn
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -64,7 +65,14 @@ end
 
 -- crée ESP pour un personnage
 local function createESP(player, char)
-    if not char or cache[player] then return end
+    if not char then return end
+
+    -- cleanup ancien ESP si existait
+    if cache[player] then
+        if cache[player].highlight then cache[player].highlight:Destroy() end
+        if cache[player].billboard then cache[player].billboard:Destroy() end
+        cache[player] = nil
+    end
 
     -- Highlight
     local highlight = Instance.new("Highlight")
@@ -138,17 +146,24 @@ end
 
 -- gestion des joueurs
 local function onCharacterAdded(player, char)
-    task.wait(1)
+    task.wait(0.5) -- laisse le perso se charger
     createESP(player, char)
-    char.AncestryChanged:Connect(function(_, parent)
-        if not parent then removeESP(player) end
+    -- si le perso meurt et disparaît → cleanup auto
+    char:WaitForChild("Humanoid").Died:Connect(function()
+        removeESP(player)
     end)
 end
 
 local function onPlayerAdded(player)
     if player == LocalPlayer and not SHOW_SELF then return end
-    player.CharacterAdded:Connect(function(char) onCharacterAdded(player, char) end)
-    if player.Character then onCharacterAdded(player, player.Character) end
+    -- quand un joueur respawn → recrée ESP
+    player.CharacterAdded:Connect(function(char)
+        onCharacterAdded(player, char)
+    end)
+    -- si il a déjà un perso (existant avant ton join)
+    if player.Character then
+        onCharacterAdded(player, player.Character)
+    end
 end
 
 local function onPlayerRemoving(player)
@@ -181,4 +196,4 @@ Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 
 updateButton()
-print("ESP chargé : bouton GUI + touche E")
+print("ESP chargé : bouton GUI + touche E + auto-refresh sur join/respawn")
