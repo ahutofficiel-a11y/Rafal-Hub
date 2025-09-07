@@ -1,6 +1,6 @@
 -- ESP Debug / Modération avec MENU déplaçable
 -- Options : Nom, Distance, Vie, Couleurs alliés/ennemis, Afficher soi-même
--- Auto-ajout joueurs + respawn
+-- Ajout : Menu toujours devant + touche V = toggle souris (changeable dans menu)
 -- Ouvrir/Fermer menu avec touche M
 
 local Players = game:GetService("Players")
@@ -18,6 +18,7 @@ local settings = {
     ShowHealth = true,
     UseTeamColors = true,
     ShowSelf = false,
+    UseMouseToggle = true, -- activer/désactiver le toggle souris par V
 }
 
 -- couleurs
@@ -26,6 +27,7 @@ local ENEMY_COLOR = Color3.fromRGB(255, 80, 80)
 local NEUTRAL_COLOR = Color3.fromRGB(255, 255, 255)
 
 local cache = {}
+local mouseVisible = false
 
 ---------------------------------------------------------------------
 -- GUI MENU
@@ -33,15 +35,17 @@ local cache = {}
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ESP_MenuGUI"
 screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- pour forcer le zindex
+screenGui.IgnoreGuiInset = false
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local menuFrame = Instance.new("Frame")
-menuFrame.Size = UDim2.new(0, 200, 0, 220)
+menuFrame.Size = UDim2.new(0, 200, 0, 250)
 menuFrame.Position = UDim2.new(0, 10, 0, 10)
 menuFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 menuFrame.BorderSizePixel = 2
 menuFrame.Active = true
-menuFrame.Draggable = false -- on gère le drag custom
+menuFrame.ZIndex = 9999 -- tout devant
 menuFrame.Parent = screenGui
 
 local title = Instance.new("TextLabel")
@@ -51,6 +55,7 @@ title.TextColor3 = Color3.new(1,1,1)
 title.TextScaled = true
 title.Font = Enum.Font.SourceSansBold
 title.Text = "ESP MENU"
+title.ZIndex = 9999
 title.Parent = menuFrame
 
 -- Drag & Drop système
@@ -89,6 +94,7 @@ local function createToggle(name, order, settingKey)
     button.TextColor3 = Color3.new(1,1,1)
     button.TextScaled = true
     button.Font = Enum.Font.SourceSans
+    button.ZIndex = 9999
     button.Text = name..": "..(settings[settingKey] and "ON" or "OFF")
     button.Parent = menuFrame
 
@@ -105,6 +111,7 @@ createToggle("Afficher Distance", 3, "ShowDistance")
 createToggle("Afficher Vie", 4, "ShowHealth")
 createToggle("Couleurs Equipes", 5, "UseTeamColors")
 createToggle("Afficher Soi-même", 6, "ShowSelf")
+createToggle("Toggle Souris (V)", 7, "UseMouseToggle")
 
 ---------------------------------------------------------------------
 -- ESP LOGIC
@@ -156,6 +163,7 @@ local function createESP(player, char)
         billboard.Size = UDim2.new(0, 200, 0, 50)
         billboard.StudsOffset = Vector3.new(0, 2.5, 0)
         billboard.AlwaysOnTop = true
+        billboard.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         billboard.Parent = char
 
         local frame = Instance.new("Frame")
@@ -272,6 +280,11 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.M then
         menuFrame.Visible = not menuFrame.Visible
     end
+    if not gpe and input.KeyCode == Enum.KeyCode.V and settings.UseMouseToggle then
+        mouseVisible = not mouseVisible
+        UserInputService.MouseIconEnabled = mouseVisible
+        UserInputService.InputMode = mouseVisible and Enum.UserInputMode.Mouse or Enum.UserInputMode.Keyboard
+    end
 end)
 
 -- update loop
@@ -291,4 +304,4 @@ end
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 
-print("ESP avec menu déplaçable chargé (ouvrir/fermer avec touche M)")
+print("ESP avec menu en avant-plan + toggle souris (V) chargé")
