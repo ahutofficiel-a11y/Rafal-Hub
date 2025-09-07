@@ -1,12 +1,13 @@
 -- ESP Debug / Modération avec MENU déplaçable
+-- Menu placé dans CoreGui (au-dessus de tout)
 -- Options : Nom, Distance, Vie, Couleurs alliés/ennemis, Afficher soi-même
--- Ajout : Menu toujours devant + touche V = toggle souris (changeable dans menu)
--- Ouvrir/Fermer menu avec touche M
+-- Ajout : raccourcis clavier personnalisables dans le menu
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
 
 ---------------------------------------------------------------------
 -- OPTIONS (par défaut)
@@ -18,7 +19,9 @@ local settings = {
     ShowHealth = true,
     UseTeamColors = true,
     ShowSelf = false,
-    UseMouseToggle = true, -- activer/désactiver le toggle souris par V
+    UseMouseToggle = true,
+    KeyMenu = Enum.KeyCode.M, -- touche menu
+    KeyMouse = Enum.KeyCode.V, -- touche souris
 }
 
 -- couleurs
@@ -28,24 +31,25 @@ local NEUTRAL_COLOR = Color3.fromRGB(255, 255, 255)
 
 local cache = {}
 local mouseVisible = false
+local waitingKeyBind = nil
 
 ---------------------------------------------------------------------
--- GUI MENU
+-- GUI MENU (dans CoreGui pour être devant tout)
 ---------------------------------------------------------------------
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ESP_MenuGUI"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- pour forcer le zindex
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.IgnoreGuiInset = false
-screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+screenGui.Parent = CoreGui
 
 local menuFrame = Instance.new("Frame")
-menuFrame.Size = UDim2.new(0, 200, 0, 250)
+menuFrame.Size = UDim2.new(0, 220, 0, 310)
 menuFrame.Position = UDim2.new(0, 10, 0, 10)
 menuFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 menuFrame.BorderSizePixel = 2
 menuFrame.Active = true
-menuFrame.ZIndex = 9999 -- tout devant
+menuFrame.ZIndex = 999999 -- max avant-plan
 menuFrame.Parent = screenGui
 
 local title = Instance.new("TextLabel")
@@ -55,13 +59,12 @@ title.TextColor3 = Color3.new(1,1,1)
 title.TextScaled = true
 title.Font = Enum.Font.SourceSansBold
 title.Text = "ESP MENU"
-title.ZIndex = 9999
+title.ZIndex = 999999
 title.Parent = menuFrame
 
--- Drag & Drop système
+-- Drag & Drop
 local dragging = false
 local dragStart, startPos
-
 title.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
@@ -85,7 +88,9 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- fonction pour créer un bouton toggle
+---------------------------------------------------------------------
+-- FONCTIONS GUI
+---------------------------------------------------------------------
 local function createToggle(name, order, settingKey)
     local button = Instance.new("TextButton")
     button.Size = UDim2.new(1, -10, 0, 30)
@@ -94,7 +99,7 @@ local function createToggle(name, order, settingKey)
     button.TextColor3 = Color3.new(1,1,1)
     button.TextScaled = true
     button.Font = Enum.Font.SourceSans
-    button.ZIndex = 9999
+    button.ZIndex = 999999
     button.Text = name..": "..(settings[settingKey] and "ON" or "OFF")
     button.Parent = menuFrame
 
@@ -104,19 +109,38 @@ local function createToggle(name, order, settingKey)
     end)
 end
 
--- créer les boutons du menu
+local function createKeyBinder(name, order, keySetting)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -10, 0, 30)
+    button.Position = UDim2.new(0, 5, 0, 30 + (order-1)*35)
+    button.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+    button.TextColor3 = Color3.new(1,1,1)
+    button.TextScaled = true
+    button.Font = Enum.Font.SourceSans
+    button.ZIndex = 999999
+    button.Text = name.." : "..settings[keySetting].Name
+    button.Parent = menuFrame
+
+    button.MouseButton1Click:Connect(function()
+        button.Text = "Appuie une touche..."
+        waitingKeyBind = {key = keySetting, button = button, label = name}
+    end)
+end
+
+-- Créer les boutons
 createToggle("ESP", 1, "Enabled")
 createToggle("Afficher Nom", 2, "ShowName")
 createToggle("Afficher Distance", 3, "ShowDistance")
 createToggle("Afficher Vie", 4, "ShowHealth")
 createToggle("Couleurs Equipes", 5, "UseTeamColors")
 createToggle("Afficher Soi-même", 6, "ShowSelf")
-createToggle("Toggle Souris (V)", 7, "UseMouseToggle")
+createToggle("Toggle Souris", 7, "UseMouseToggle")
+createKeyBinder("Touche Menu", 8, "KeyMenu")
+createKeyBinder("Touche Souris", 9, "KeyMouse")
 
 ---------------------------------------------------------------------
 -- ESP LOGIC
 ---------------------------------------------------------------------
-
 local function getRelationColor(player)
     if not settings.UseTeamColors then
         return NEUTRAL_COLOR
@@ -134,17 +158,13 @@ end
 
 local function createESP(player, char)
     if not char then return end
-
-    -- cleanup ancien
     if cache[player] then
         if cache[player].highlight then cache[player].highlight:Destroy() end
         if cache[player].billboard then cache[player].billboard:Destroy() end
         cache[player] = nil
     end
 
-    -- highlight
     local highlight = Instance.new("Highlight")
-    highlight.Name = "DevESP_Highlight"
     highlight.Adornee = char
     highlight.FillTransparency = 1
     highlight.OutlineTransparency = 0
@@ -152,18 +172,14 @@ local function createESP(player, char)
     highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     highlight.Parent = char
 
-    -- billboard
     local head = char:FindFirstChild("Head")
-    local billboard
-    local nameLabel, hpLabel
+    local billboard, nameLabel, hpLabel
     if head then
         billboard = Instance.new("BillboardGui")
-        billboard.Name = "DevESP_Billboard"
         billboard.Adornee = head
         billboard.Size = UDim2.new(0, 200, 0, 50)
         billboard.StudsOffset = Vector3.new(0, 2.5, 0)
         billboard.AlwaysOnTop = true
-        billboard.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         billboard.Parent = char
 
         local frame = Instance.new("Frame")
@@ -173,7 +189,6 @@ local function createESP(player, char)
 
         nameLabel = Instance.new("TextLabel")
         nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
-        nameLabel.Position = UDim2.new(0, 0, 0, 0)
         nameLabel.BackgroundTransparency = 1
         nameLabel.TextScaled = true
         nameLabel.Font = Enum.Font.SourceSansBold
@@ -196,12 +211,11 @@ local function createESP(player, char)
 
     cache[player] = {highlight = highlight, billboard = billboard, nameLabel = nameLabel, hpLabel = hpLabel}
 
-    -- mise à jour vie
     local humanoid = char:FindFirstChildOfClass("Humanoid")
     if humanoid and hpLabel then
         local function updateHP()
             if settings.ShowHealth then
-                hpLabel.Text = string.format("Vie : %d / %d", math.floor(humanoid.Health), math.floor(humanoid.MaxHealth))
+                hpLabel.Text = string.format("Vie : %d / %d", humanoid.Health, humanoid.MaxHealth)
             else
                 hpLabel.Text = ""
             end
@@ -227,7 +241,6 @@ local function updateESP()
     for player, entry in pairs(cache) do
         if player.Character and player.Character.PrimaryPart and lpRoot then
             local dist = (lpRoot.Position - player.Character.PrimaryPart.Position).Magnitude
-            -- update nom + distance
             if entry.nameLabel then
                 if settings.ShowName then
                     local text = player.Name
@@ -239,12 +252,10 @@ local function updateESP()
                     entry.nameLabel.Text = ""
                 end
             end
-            -- couleur
             if entry.highlight then
                 entry.highlight.OutlineColor = getRelationColor(player)
                 entry.highlight.Enabled = settings.Enabled
             end
-            -- affichage toggle
             if entry.billboard then
                 entry.billboard.Enabled = settings.Enabled
             end
@@ -275,19 +286,33 @@ local function onPlayerRemoving(player)
     removeESP(player)
 end
 
--- toggle menu avec M
+---------------------------------------------------------------------
+-- INPUT
+---------------------------------------------------------------------
 UserInputService.InputBegan:Connect(function(input, gpe)
-    if not gpe and input.KeyCode == Enum.KeyCode.M then
+    if gpe then return end
+
+    -- assignation de nouvelle touche
+    if waitingKeyBind then
+        settings[waitingKeyBind.key] = input.KeyCode
+        waitingKeyBind.button.Text = waitingKeyBind.label.." : "..input.KeyCode.Name
+        waitingKeyBind = nil
+        return
+    end
+
+    -- toggle menu
+    if input.KeyCode == settings.KeyMenu then
         menuFrame.Visible = not menuFrame.Visible
     end
-    if not gpe and input.KeyCode == Enum.KeyCode.V and settings.UseMouseToggle then
+
+    -- toggle souris
+    if input.KeyCode == settings.KeyMouse and settings.UseMouseToggle then
         mouseVisible = not mouseVisible
         UserInputService.MouseIconEnabled = mouseVisible
-        UserInputService.InputMode = mouseVisible and Enum.UserInputMode.Mouse or Enum.UserInputMode.Keyboard
     end
 end)
 
--- update loop
+-- boucle
 task.spawn(function()
     while true do
         updateESP()
@@ -304,4 +329,4 @@ end
 Players.PlayerAdded:Connect(onPlayerAdded)
 Players.PlayerRemoving:Connect(onPlayerRemoving)
 
-print("ESP avec menu en avant-plan + toggle souris (V) chargé")
+print("ESP avec menu CoreGui (avant tout) + raccourcis personnalisables chargé")
