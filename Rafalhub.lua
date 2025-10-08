@@ -62,6 +62,13 @@ local Button = MainTab:CreateButton({
 })
 
 local Button = MainTab:CreateButton({
+   Name = "Private Server [FREE]",
+   Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/PrivateServer"))()
+   end,
+})
+
+local Button = MainTab:CreateButton({
    Name = "ESP",
    Callback = function()
        loadstring(game:HttpGet("https://raw.githubusercontent.com/ahutofficiel-a11y/Rafal-Hub/refs/heads/main/Esp.lua"))()
