@@ -83,6 +83,13 @@ local Button = MainTab:CreateButton({
 })
 
 local Button = MainTab:CreateButton({
+   Name = "Anti-Kick [TEST]",
+   Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Anti-Kick/refs/heads/main/Anti-Kick.lua"))()
+   end,
+})
+
+local Button = MainTab:CreateButton({
    Name = "God Mod",
    Callback = function()
        -- Script à placer dans ServerScriptService
