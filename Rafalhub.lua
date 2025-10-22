@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "RAFAL HUB V1.0",
+   Name = "🎃 RAFAL HUB V1.1 🎃",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
    LoadingTitle = "RAFAL HUB",
    LoadingSubtitle = "key in discord",
@@ -27,7 +27,7 @@ local Window = Rayfield:CreateWindow({
 
    KeySystem = true, -- Set this to true to use our key system
    KeySettings = {
-      Title = "Alpha Hub",
+      Title = "🎃 Alpha Hub 🎃",
       Subtitle = "Key System",
       Note = "Join https://discord.gg/m7Gzcy9tJt", -- Use this to tell the user how to get a key
       FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
