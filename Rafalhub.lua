@@ -262,27 +262,50 @@ local MainSection = MainTab:CreateSection("Candy Baby")
 local Button = MainTab:CreateButton({
    Name = "TP TO CANDY",
    Callback = function()
--- LocalScript à placer dans StarterPlayerScripts
+-- LocalScript (StarterPlayerScripts) : tentative client-only
+local Players = game:GetService("Players")
+local workspace = game:GetService("Workspace")
+local player = Players.LocalPlayer
 
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-
--- Fonction de téléportation vers tous les modèles
-local function teleportToAllCandyCorn()
-	for _, obj in ipairs(workspace:GetChildren()) do
-		if obj:IsA("Model") and obj.Name:match("^BABY_CandyCorn_%d+$") then
-			local primary = obj:FindFirstChild("PrimaryPart") or obj:FindFirstChildWhichIsA("BasePart")
-			if primary then
-				character:MoveTo(primary.Position + Vector3.new(0, 5, 0))
-				task.wait(1) -- pause entre les téléports
-			end
-		end
-	end
+local function getCharacter()
+	return player.Character or player.CharacterAdded:Wait()
 end
 
--- Attendre un peu que tout se charge
-task.wait(2)
-teleportToAllCandyCorn()
+local function findCandyCornModels()
+	local res = {}
+	for _, obj in ipairs(workspace:GetChildren()) do
+		if obj:IsA("Model") and obj.Name:match("^BABY_CandyCorn_%d+$") then
+			table.insert(res, obj)
+		end
+	end
+	return res
+end
+
+local function teleportToModelLocal(model)
+	local char = getCharacter()
+	local hrp = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChildWhichIsA("BasePart")
+	if not hrp then return end
+
+	local targetPart = model:FindFirstChild("PrimaryPart") or model:FindFirstChildWhichIsA("BasePart")
+	if not targetPart then return end
+
+	-- tentative : MoveTo puis set CFrame
+	char:MoveTo(targetPart.Position + Vector3.new(0,5,0))
+	-- petite attente pour laisser MoveTo prendre effet
+	task.wait(0.1)
+	-- forcer CFrame côté client (peut être écrasé par le serveur)
+	pcall(function()
+		hrp.CFrame = CFrame.new(targetPart.Position + Vector3.new(0,5,0))
+	end)
+end
+
+-- Exécution
+task.wait(1) -- attendre que tout charge
+local models = findCandyCornModels()
+for _, m in ipairs(models) do
+	teleportToModelLocal(m)
+	task.wait(1) -- pause entre chaque téléport
+end
    end,
 })
 
