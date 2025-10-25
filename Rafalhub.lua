@@ -257,6 +257,36 @@ teleportToCoords(targetPosition)
    end,
 })
 
+local MainSection = MainTab:CreateSection("Candy Baby")
+
+local Button = MainTab:CreateButton({
+   Name = "TP TO CANDY",
+   Callback = function()
+-- LocalScript à placer dans StarterPlayerScripts
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+-- Fonction de téléportation vers tous les modèles
+local function teleportToAllCandyCorn()
+	for _, obj in ipairs(workspace:GetChildren()) do
+		if obj:IsA("Model") and obj.Name:match("^BABY_CandyCorn_%d+$") then
+			local primary = obj:FindFirstChild("PrimaryPart") or obj:FindFirstChildWhichIsA("BasePart")
+			if primary then
+				character:MoveTo(primary.Position + Vector3.new(0, 5, 0))
+				task.wait(1) -- pause entre les téléports
+			end
+		end
+	end
+end
+
+-- Attendre un peu que tout se charge
+task.wait(2)
+teleportToAllCandyCorn()
+   end,
+})
+
+
 local MainTab = Window:CreateTab("Obby but you're on a bike", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Obby but you're on a bike")
 
