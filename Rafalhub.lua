@@ -264,46 +264,61 @@ local Button = MainTab:CreateButton({
    Callback = function()
 -- LocalScript (StarterPlayerScripts)
 -- Téléporte le joueur localement sur tous les modèles BABY_CandyCorn_01 à BABY_CandyCorn_10
--- situés dans workspace.EggHunt_Baby1
+-- situés directement dans workspace.EggHunt_Baby1
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 
--- Attendre que tout soit chargé
+-- attendre que tout soit chargé
 task.wait(2)
 
--- Récupère le dossier où sont les modèles
-local eggFolder = Workspace:WaitForChild("EggHunt_Baby1")
+-- attendre le personnage
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart", 10)
 
--- Fonction pour téléporter le joueur
+-- le dossier qui contient les modèles
+local folder = Workspace:WaitForChild("EggHunt_Baby1")
+
+-- fonction pour téléporter localement
 local function teleportTo(part)
-	local char = player.Character or player.CharacterAdded:Wait()
-	local root = char:WaitForChild("HumanoidRootPart", 5)
-	if not root then return end
-	if part then
-		char:MoveTo(part.Position + Vector3.new(0, 5, 0))
+	if part and root then
+		character:MoveTo(part.Position + Vector3.new(0, 5, 0))
 		task.wait(1)
 	end
 end
 
--- Parcours de tous les modèles BABY_CandyCorn_01 à BABY_CandyCorn_10
+-- chercher tous les modèles
+local found = {}
+
 for i = 1, 10 do
 	local name = string.format("BABY_CandyCorn_%02d", i)
-	local model = eggFolder:FindFirstChild(name)
-	if model then
-		print("📦 Téléportation vers :", model.Name)
-		local target = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-		if target then
-			teleportTo(target)
-		else
-			warn("⚠️ Aucun BasePart trouvé dans", model.Name)
-		end
-	else
-		warn("❌ Modèle introuvable :", name)
+	local model = folder:FindFirstChild(name)
+
+	if not model then
+		-- si tes modèles s’appellent sans zéro (ex: BABY_CandyCorn_1)
+		model = folder:FindFirstChild("BABY_CandyCorn_" .. i)
+	end
+
+	if model and model:IsA("Model") then
+		table.insert(found, model)
 	end
 end
+
+print("📦 Modèles trouvés :", #found)
+
+-- téléportation sur chacun
+for _, model in ipairs(found) do
+	local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+	if part then
+		print("→ Téléportation vers :", model.Name)
+		teleportTo(part)
+	else
+		warn("⚠️ Aucun BasePart trouvé dans", model.Name)
+	end
+end
+
    end,
 })
 
