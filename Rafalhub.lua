@@ -263,98 +263,47 @@ local Button = MainTab:CreateButton({
    Name = "TP TO CANDY (WEEK 1)",
    Callback = function()
 -- LocalScript (StarterPlayerScripts)
--- Téléporte le joueur vers tous les modèles BABY_CandyCorn_00, BABY_CandyCorn_01, etc.
--- qui se trouvent dans workspace.EggHunt_Baby1
+-- Téléporte le joueur localement sur tous les modèles BABY_CandyCorn_01 à BABY_CandyCorn_10
+-- situés dans workspace.EggHunt_Baby1
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 
--- Dossier contenant les modèles
-local rootFolder = Workspace:WaitForChild("EggHunt_Baby1")
+-- Attendre que tout soit chargé
+task.wait(2)
 
--- Fonction récursive pour chercher les modèles correspondants
-local function findAllCandyCornModels(parent)
-	local results = {}
-	for _, obj in ipairs(parent:GetChildren()) do
-		if obj:IsA("Model") and obj.Name:match("^BABY_CandyCorn_%d+$") then
-			table.insert(results, obj)
-		elseif #obj:GetChildren() > 0 then
-			-- recherche récursive dans les sous-dossiers
-			for _, found in ipairs(findAllCandyCornModels(obj)) do
-				table.insert(results, found)
-			end
-		end
-	end
-	return results
-end
+-- Récupère le dossier où sont les modèles
+local eggFolder = Workspace:WaitForChild("EggHunt_Baby1")
 
--- Téléportation locale (visible uniquement pour toi)
-local function teleportToModel(model)
+-- Fonction pour téléporter le joueur
+local function teleportTo(part)
 	local char = player.Character or player.CharacterAdded:Wait()
 	local root = char:WaitForChild("HumanoidRootPart", 5)
 	if not root then return end
-
-	local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
 	if part then
 		char:MoveTo(part.Position + Vector3.new(0, 5, 0))
 		task.wait(1)
 	end
 end
 
--- Lancement après un petit délai
-task.wait(2)
-
-local models = findAllCandyCornModels(rootFolder)
-print("📦 Modèles trouvés :", #models)
-
-for _, model in ipairs(models) do
-	print("→ Téléportation vers :", model.Name)
-	teleportToModel(model)
+-- Parcours de tous les modèles BABY_CandyCorn_01 à BABY_CandyCorn_10
+for i = 1, 10 do
+	local name = string.format("BABY_CandyCorn_%02d", i)
+	local model = eggFolder:FindFirstChild(name)
+	if model then
+		print("📦 Téléportation vers :", model.Name)
+		local target = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+		if target then
+			teleportTo(target)
+		else
+			warn("⚠️ Aucun BasePart trouvé dans", model.Name)
+		end
+	else
+		warn("❌ Modèle introuvable :", name)
+	end
 end
-   end,
-})
-
-
-local MainTab = Window:CreateTab("Obby but you're on a bike", nil) -- Title, Image
-local MainSection = MainTab:CreateSection("Obby but you're on a bike")
-
-local Button = MainTab:CreateButton({
-   Name = "End world 2",
-   Callback = function()
-       local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
-local targetPosition = Vector3.new(107.98, -3.50, -20964.24) -- X, Y, Z
-
-local function teleportToCoords(position)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(position)
-    end
-end
-
-task.wait(0.1)
-teleportToCoords(targetPosition)
-   end,
-})
-
-local Button = MainTab:CreateButton({
-   Name = "End world 3",
-   Callback = function()
-       local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
-local targetPosition = Vector3.new(110.58, -3.54, -13636.29) -- X, Y, Z
-
-local function teleportToCoords(position)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(position)
-    end
-end
-
-task.wait(0.1)
-teleportToCoords(targetPosition)
    end,
 })
 
