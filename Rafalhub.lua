@@ -260,51 +260,58 @@ teleportToCoords(targetPosition)
 local MainSection = MainTab:CreateSection("Candy Baby")
 
 local Button = MainTab:CreateButton({
-   Name = "TP TO CANDY",
+   Name = "TP TO CANDY (WEEK 1)",
    Callback = function()
--- LocalScript (StarterPlayerScripts) : tentative client-only
+-- LocalScript (StarterPlayerScripts)
+-- Téléporte le joueur vers tous les modèles BABY_CandyCorn_00, BABY_CandyCorn_01, etc.
+-- qui se trouvent dans workspace.EggHunt_Baby1
+
 local Players = game:GetService("Players")
-local workspace = game:GetService("Workspace")
+local Workspace = game:GetService("Workspace")
+
 local player = Players.LocalPlayer
 
-local function getCharacter()
-	return player.Character or player.CharacterAdded:Wait()
-end
+-- Dossier contenant les modèles
+local rootFolder = Workspace:WaitForChild("EggHunt_Baby1")
 
-local function findCandyCornModels()
-	local res = {}
-	for _, obj in ipairs(workspace:GetChildren()) do
+-- Fonction récursive pour chercher les modèles correspondants
+local function findAllCandyCornModels(parent)
+	local results = {}
+	for _, obj in ipairs(parent:GetChildren()) do
 		if obj:IsA("Model") and obj.Name:match("^BABY_CandyCorn_%d+$") then
-			table.insert(res, obj)
+			table.insert(results, obj)
+		elseif #obj:GetChildren() > 0 then
+			-- recherche récursive dans les sous-dossiers
+			for _, found in ipairs(findAllCandyCornModels(obj)) do
+				table.insert(results, found)
+			end
 		end
 	end
-	return res
+	return results
 end
 
-local function teleportToModelLocal(model)
-	local char = getCharacter()
-	local hrp = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChildWhichIsA("BasePart")
-	if not hrp then return end
+-- Téléportation locale (visible uniquement pour toi)
+local function teleportToModel(model)
+	local char = player.Character or player.CharacterAdded:Wait()
+	local root = char:WaitForChild("HumanoidRootPart", 5)
+	if not root then return end
 
-	local targetPart = model:FindFirstChild("PrimaryPart") or model:FindFirstChildWhichIsA("BasePart")
-	if not targetPart then return end
-
-	-- tentative : MoveTo puis set CFrame
-	char:MoveTo(targetPart.Position + Vector3.new(0,5,0))
-	-- petite attente pour laisser MoveTo prendre effet
-	task.wait(0.1)
-	-- forcer CFrame côté client (peut être écrasé par le serveur)
-	pcall(function()
-		hrp.CFrame = CFrame.new(targetPart.Position + Vector3.new(0,5,0))
-	end)
+	local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
+	if part then
+		char:MoveTo(part.Position + Vector3.new(0, 5, 0))
+		task.wait(1)
+	end
 end
 
--- Exécution
-task.wait(1) -- attendre que tout charge
-local models = findCandyCornModels()
-for _, m in ipairs(models) do
-	teleportToModelLocal(m)
-	task.wait(1) -- pause entre chaque téléport
+-- Lancement après un petit délai
+task.wait(2)
+
+local models = findAllCandyCornModels(rootFolder)
+print("📦 Modèles trouvés :", #models)
+
+for _, model in ipairs(models) do
+	print("→ Téléportation vers :", model.Name)
+	teleportToModel(model)
 end
    end,
 })
