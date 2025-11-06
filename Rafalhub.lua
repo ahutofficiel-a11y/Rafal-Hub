@@ -49,7 +49,7 @@ Rayfield:Notify({
 
 local Label = MainTab:CreateLabel("Discord : https://discord.gg/m7Gzcy9tJt", 4483362458, Color3.fromRGB(255, 255, 255), false) -- Title, Icon, Color, IgnoreTheme
 
-local Paragraph = MainTab:CreateParagraph({Title = "Credits", Content = "This script was created by Cacahuète and Wesley/Thomas"})
+local Paragraph = MainTab:CreateParagraph({Title = "Credits", Content = "This script was created by Anonyme and Anonyme"})
 
 local MainTab = Window:CreateTab("Normal", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("All scripts")
