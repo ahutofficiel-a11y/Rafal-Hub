@@ -372,7 +372,7 @@ local MainSection = MainTab:CreateSection("ACS 1.7.5 and ACS 2.0.1")
 local Button = MainTab:CreateButton({
    Name = "ACS Killer",
    Callback = function()
-       loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/751c7de617925e07d7f749cf3b359d85.lua"))()
+       loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/6203d711b7531ea5ce99f5877762ec82.lua"))()
    end,
 })
 
