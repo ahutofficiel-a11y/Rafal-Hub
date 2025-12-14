@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "🎃 RAFAL HUB V1.1 🎃",
+   Name = "RAFAL HUB V1.2",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
    LoadingTitle = "RAFAL HUB",
    LoadingSubtitle = "key in discord",
@@ -383,6 +383,42 @@ local Button = MainTab:CreateButton({
    Name = "STOP ADONIS ANTI-CHEAT",
    Callback = function()
        loadstring(game:HttpGet("https://raw.githubusercontent.com/e1998ee/adonisb1p3ss/refs/heads/main/NeptuneScripts"))()
+   end,
+})
+
+local Button = MainTab:CreateButton({
+   Name = "Bypass Secours de France",
+   Callback = function()
+       local LocalPlayerScripts = game:GetService("Players").LocalPlayer.PlayerScripts
+local IteratorFunc, TableState, IteratorKey = pairs({
+    "GunEngine",
+    "ChatTags",
+    "ClientServerPortal",
+    "Console_BubbleChat",
+    "Lighting_Manager",
+    "PP_Manager",
+    "PlayerScriptsLoader",
+    "RbxCharacterSounds",
+    "Sound_Manager",
+    "Time_Manager",
+    "UI_Manager",
+    "UserInput_Manager",
+    "Weather_Manager",
+    "Zones_Manager",
+    "PlayerModule"
+})
+while true do
+    local ModuleName
+    IteratorKey, ModuleName = IteratorFunc(TableState, IteratorKey)
+    if IteratorKey == nil then
+        break
+    end
+    local ModuleInstance = LocalPlayerScripts:FindFirstChild(ModuleName)
+    if ModuleInstance then
+        ModuleInstance:Destroy()
+    end
+end
+print("Ez Hook Function 0x1324322114235064 / AntiCheat Bypass")
    end,
 })
 
