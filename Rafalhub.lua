@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "RAFAL HUB V1.2",
+   Name = "🎄RAFAL HUB V1.3🎄",
    Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
    LoadingTitle = "RAFAL HUB",
    LoadingSubtitle = "key in discord",
@@ -27,7 +27,7 @@ local Window = Rayfield:CreateWindow({
 
    KeySystem = true, -- Set this to true to use our key system
    KeySettings = {
-      Title = "Alpha Hub",
+      Title = "🎄Alpha Hub🎄",
       Subtitle = "Key System",
       Note = "Join https://discord.gg/m7Gzcy9tJt", -- Use this to tell the user how to get a key
       FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
@@ -76,21 +76,14 @@ local Button = MainTab:CreateButton({
 })
 
 local Button = MainTab:CreateButton({
-   Name = "Aimlock",
+   Name = "Aimlock [BÊTA]",
    Callback = function()
        loadstring(game:HttpGet("https://raw.githubusercontent.com/ahutofficiel-a11y/Rafal-Hub/refs/heads/main/aimlock.lua"))()
    end,
 })
 
 local Button = MainTab:CreateButton({
-   Name = "Anti-Kick [TEST]",
-   Callback = function()
-       loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Anti-Kick/refs/heads/main/Anti-Kick.lua"))()
-   end,
-})
-
-local Button = MainTab:CreateButton({
-   Name = "God Mod",
+   Name = "God Mod [BÊTA]",
    Callback = function()
        -- Script à placer dans ServerScriptService
 
@@ -118,6 +111,13 @@ local Button = MainTab:CreateButton({
    Name = "Give Tools",
    Callback = function()
        loadstring(game:HttpGet("https://pastefy.app/qpbQo0lr/raw"))()
+   end,
+})
+
+local Button = MainTab:CreateButton({
+   Name = "Véhicule Mods [NEW]",
+   Callback = function()
+       loadstring(game:HttpGet('https://raw.githubusercontent.com/Documantation12/Universal-Vehicle-Script/main/Main.lua'))()
    end,
 })
 
@@ -257,71 +257,6 @@ teleportToCoords(targetPosition)
    end,
 })
 
-local MainSection = MainTab:CreateSection("Candy Baby")
-
-local Button = MainTab:CreateButton({
-   Name = "TP TO CANDY (WEEK 1)",
-   Callback = function()
--- LocalScript (StarterPlayerScripts)
--- Téléporte le joueur localement sur tous les modèles BABY_CandyCorn_01 à BABY_CandyCorn_10
--- situés directement dans workspace.EggHunt_Baby1
-
-local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
-
-local player = Players.LocalPlayer
-
--- attendre que tout soit chargé
-task.wait(2)
-
--- attendre le personnage
-local character = player.Character or player.CharacterAdded:Wait()
-local root = character:WaitForChild("HumanoidRootPart", 10)
-
--- le dossier qui contient les modèles
-local folder = Workspace:WaitForChild("EggHunt_Baby1")
-
--- fonction pour téléporter localement
-local function teleportTo(part)
-	if part and root then
-		character:MoveTo(part.Position + Vector3.new(0, 5, 0))
-		task.wait(1)
-	end
-end
-
--- chercher tous les modèles
-local found = {}
-
-for i = 1, 10 do
-	local name = string.format("BABY_CandyCorn_%02d", i)
-	local model = folder:FindFirstChild(name)
-
-	if not model then
-		-- si tes modèles s’appellent sans zéro (ex: BABY_CandyCorn_1)
-		model = folder:FindFirstChild("BABY_CandyCorn_" .. i)
-	end
-
-	if model and model:IsA("Model") then
-		table.insert(found, model)
-	end
-end
-
-print("📦 Modèles trouvés :", #found)
-
--- téléportation sur chacun
-for _, model in ipairs(found) do
-	local part = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart")
-	if part then
-		print("→ Téléportation vers :", model.Name)
-		teleportTo(part)
-	else
-		warn("⚠️ Aucun BasePart trouvé dans", model.Name)
-	end
-end
-
-   end,
-})
-
 local MainTab = Window:CreateTab("Mega Obby", nil) -- Title, Image
 local MainSection = MainTab:CreateSection("Maga Obby Teleport")
 
@@ -363,6 +298,79 @@ end
 
 task.wait(0.1)
 teleportToCoords(targetPosition)
+   end,
+})
+
+local MainTab = Window:CreateTab("Emergency Hamburg", nil) -- Title, Image
+local MainSection = MainTab:CreateSection("Script for emergency hamburg")
+
+local Button = MainTab:CreateButton({
+   Name = "Lunar menu",
+   Callback = function()
+       loadstring(Game:HttpGet("https://raw.githubusercontent.com/fluxscripts/LunarV1/refs/heads/main/mainscript"))();
+   end,
+})
+
+local MainTab = Window:CreateTab("Secours de France", nil) -- Title, Image
+local MainSection = MainTab:CreateSection("Script for Secours de France")
+
+local Button = MainTab:CreateButton({
+   Name = "Secours de France Véhicule Mods",
+   Callback = function()
+       loadstring(game:HttpGet('https://raw.githubusercontent.com/Documantation12/Universal-Vehicle-Script/main/Main.lua'))()
+   end,
+})
+
+local Button = MainTab:CreateButton({
+   Name = "Secours de France BYPASS",
+   Callback = function()
+       local LocalPlayerScripts = game:GetService("Players").LocalPlayer.PlayerScripts
+local IteratorFunc, TableState, IteratorKey = pairs({
+    "GunEngine",
+    "ChatTags",
+    "ClientServerPortal",
+    "Console_BubbleChat",
+    "Lighting_Manager",
+    "PP_Manager",
+    "PlayerScriptsLoader",
+    "RbxCharacterSounds",
+    "Sound_Manager",
+    "Time_Manager",
+    "UI_Manager",
+    "UserInput_Manager",
+    "Weather_Manager",
+    "Zones_Manager",
+    "PlayerModule"
+})
+while true do
+    local ModuleName
+    IteratorKey, ModuleName = IteratorFunc(TableState, IteratorKey)
+    if IteratorKey == nil then
+        break
+    end
+    local ModuleInstance = LocalPlayerScripts:FindFirstChild(ModuleName)
+    if ModuleInstance then
+        ModuleInstance:Destroy()
+    end
+end
+print("Secours de France Bypassed (cheh recovery et vicojump1")
+   end,
+})
+
+local Button = MainTab:CreateButton({
+   Name = "Secours de France MENU",
+   Callback = function()
+       loadstring(game:HttpGet("https://api.junkie-development.de/api/v1/luascripts/public/97f604ac3cc5485a240bc78c2c2108f62958e62a62ea9a7e2d6b0fc7a67693c1/download"))()
+   end,
+})
+
+local MainTab = Window:CreateTab("Animations", nil)
+local MainSection = MainTab:CreateSection("Animation for all games")
+
+local Button = MainTab:CreateButton({
+   Name = "JERK OFF",
+   Callback = function()
+       loadstring(game:HttpGet("https://raw.githubusercontent.com/imalwaysad/universal-gui/refs/heads/main/jerk%20off%20r6"))()
    end,
 })
 
@@ -419,58 +427,6 @@ while true do
     end
 end
 print("Ez Hook Function 0x1324322114235064 / AntiCheat Bypass")
-   end,
-})
-
-local Button = MainTab:CreateButton({
-   Name = "ANTI-KICK [BÊTA]",
-   Callback = function()
-        -- 🔒 Anti-kick client ultra-robuste & silencieux
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
--- Empêche LocalPlayer:Kick()
-if not LocalPlayer.KickProtected then
-    LocalPlayer.KickProtected = true  
-
-    local oldKick = LocalPlayer.Kick
-    LocalPlayer.Kick = function(self, message)
-        -- On bloque sans rien afficher
-        return
-    end
-end
-
--- Bloque les RemoteEvents suspects
-for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
-    if obj:IsA("RemoteEvent") then
-        obj.OnClientEvent:Connect(function(...)
-            local args = {...}
-            -- Si le message contient "kick", on bloque
-            for _, v in ipairs(args) do
-                if typeof(v) == "string" and v:lower():find("kick") then
-                    return -- Ignore totalement
-                end
-            end
-        end)
-    end
-end
-
--- Surveille si de nouveaux RemoteEvents apparaissent
-ReplicatedStorage.DescendantAdded:Connect(function(obj)
-    if obj:IsA("RemoteEvent") then
-        obj.OnClientEvent:Connect(function(...)
-            local args = {...}
-            for _, v in ipairs(args) do
-                if typeof(v) == "string" and v:lower():find("kick") then
-                    return
-                end
-            end
-        end)
-    end
-end)
-
-
    end,
 })
 
