@@ -3,7 +3,7 @@
 local Loaded_Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 local Window = Loaded_Rayfield:CreateWindow({
     LoadingTitle = "Alpha Hub",
-    Name = "NexHub - Noweye [RP/FR]",
+    Name = "AlphaHub - Noweye [RP/FR]",
     Discord = {
         Enabled = false,
         RememberJoins = true,
