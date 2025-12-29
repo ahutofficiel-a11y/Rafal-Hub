@@ -223,7 +223,7 @@ local Button = Tab:Button({
 local Section = Window:Section({
     Title = "Games",
     Icon = "bird",
-    Opened = true,
+    Opened = false,
 })
 
 local Button = Tab:Button({
