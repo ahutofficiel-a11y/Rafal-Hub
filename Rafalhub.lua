@@ -58,7 +58,7 @@ local Window = WindUI:CreateWindow({
         -- ↓ Optional. You can remove it.
         Thumbnail = {
             Image = "rbxassetid://",
-            Title = "Thumbnail",
+            Title = "Alpha Hub",
         },
         
         -- ↓ Optional. You can remove it.
@@ -79,7 +79,7 @@ local Tab = Window:Tab({
 })
 
 local Section = Window:Section({
-    Title = "Informations",
+    Title = "Universal",
     Icon = "bird",
     Opened = true,
 })
@@ -169,5 +169,44 @@ local Button = Tab:Button({
     Locked = false,
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/tienkhanh1/spicy/main/PrivateServer"))
+    end
+})
+
+local Tab = Window:Tab({
+    Title = "Others menu",
+    Icon = "bird", -- optional
+    Locked = false,
+})
+
+local Section = Window:Section({
+    Title = "Others menu Section",
+    Icon = "bird",
+    Opened = true,
+})
+
+local Button = Tab:Button({
+    Title = "Infinity Yeld",
+    Desc = "CMD for all games",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ahutofficiel-a11y/Rafal-Hub/refs/heads/main/Esp.lua"))()
+    end
+})
+
+local Button = Tab:Button({
+    Title = "Car Mods",
+    Desc = "Mods you cars for all games",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/Documantation12/Universal-Vehicle-Script/main/Main.lua'))()
+    end
+})
+
+local Button = Tab:Button({
+    Title = "ACS Killer",
+    Desc = "ACS Killer for ",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/6203d711b7531ea5ce99f5877762ec82.lua"))()
     end
 })
