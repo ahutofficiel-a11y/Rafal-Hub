@@ -194,6 +194,15 @@ local Button = Tab:Button({
 })
 
 local Button = Tab:Button({
+    Title = "Aimbot",
+    Desc = "Aimbot for all games",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/new-gugus/aimbot-neptune/refs/heads/main/aimbot.lua", true))()
+    end
+})
+
+local Button = Tab:Button({
     Title = "Car Mods",
     Desc = "Mods you cars for all games",
     Locked = false,
@@ -204,9 +213,51 @@ local Button = Tab:Button({
 
 local Button = Tab:Button({
     Title = "ACS Killer",
-    Desc = "ACS Killer for ",
+    Desc = "ACS Killer for only game have ACS A.7.5 or 2.0.1",
     Locked = false,
     Callback = function()
         loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/6203d711b7531ea5ce99f5877762ec82.lua"))()
+    end
+})
+
+local Section = Window:Section({
+    Title = "Games",
+    Icon = "bird",
+    Opened = true,
+})
+
+local Button = Tab:Button({
+    Title = "Secours de France RP",
+    Desc = "Only for Secours de France RP V.6 (soon)",
+    Locked = false,
+    Callback = function()
+        print("Secours de France soon...")
+    end
+})
+
+local Button = Tab:Button({
+    Title = "School RP FR Shibuya",
+    Desc = "Key : omegal",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/omega-scriptt/SchoolRp-fr/refs/heads/main/SCHOOLRP%23FR%20OMEGA.txt"))() 
+    end
+})
+
+local Button = Tab:Button({
+    Title = "Site 43",
+    Desc = "no't work for xeno and solara",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/e1998a/Site-43/refs/heads/main/Neptune%20Scripts"))()
+    end
+})
+
+local Button = Tab:Button({
+    Title = "Brookhaven",
+    Desc = "Brookhaven best cheat",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/as6cd0/SP_Hub/refs/heads/main/Brookhaven"))()
     end
 })
