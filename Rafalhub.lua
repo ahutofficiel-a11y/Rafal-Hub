@@ -220,12 +220,10 @@ local Button = Tab:Button({
     end
 })
 
-Window:Space()
-
-local Section = Window:Section({
+local Tab = Window:Tab({
     Title = "Games",
-    Icon = "bird",
-    Opened = false,
+    Icon = "bird", -- optional
+    Locked = false,
 })
 
 local Button = Tab:Button({
