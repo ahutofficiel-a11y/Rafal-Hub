@@ -220,7 +220,7 @@ local Button = Tab:Button({
     end
 })
 
-Window:Divider()
+Window:Space()
 
 local Section = Window:Section({
     Title = "Games",
