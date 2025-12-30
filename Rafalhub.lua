@@ -118,6 +118,42 @@ WindUI:Notify({
     Icon = "bird",
 })
 
+local Slider = Tab:Slider({
+    Title = "WalkSpeed",
+    Desc = "Change you walkspeed",
+    
+    -- To make float number supported, 
+    -- make the Step a float number.
+    -- example: Step = 0.1
+    Step = 1,
+    Value = {
+        Min = 16,
+        Max = 500,
+        Default = 16,
+    },
+    Callback = function(value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
+    end
+})
+
+local Slider = Tab:Slider({
+    Title = "JumpPower",
+    Desc = "Change you jumpPower",
+    
+    -- To make float number supported, 
+    -- make the Step a float number.
+    -- example: Step = 0.1
+    Step = 1,
+    Value = {
+        Min = 50,
+        Max = 500,
+        Default = 50,
+    },
+    Callback = function(value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+    end
+})
+
 local Button = Tab:Button({
     Title = "Infinite Jump",
     Desc = "Infinite Jump !!!!!!!!!!!!",
