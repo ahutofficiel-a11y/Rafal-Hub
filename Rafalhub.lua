@@ -225,7 +225,7 @@ local Button = Tab:Button({
     Desc = "CMD for all games",
     Locked = false,
     Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ahutofficiel-a11y/Rafal-Hub/refs/heads/main/Esp.lua"))()
+        loadstring(game:HttpGet("https://obj.wearedevs.net/2/scripts/Infinite%20Yield.lua"))()
     end
 })
 
@@ -304,5 +304,38 @@ local Button = Tab:Button({
     Locked = false,
     Callback = function()
         loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Fire-all-remote-events-77205"))()
+    end
+})
+
+local Tab = Window:Tab({
+    Title = "Bypass",
+    Icon = "bird", -- optional
+    Locked = false,
+})
+
+local Button = Tab:Button({
+    Title = "Bypass Secours De France",
+    Desc = "Bypass leur anti-cheat de merde",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/39e160959d68c457f1979d3f249897eb.lua"))()
+    end
+})
+
+local Button = Tab:Button({
+    Title = "Bypass Adonis",
+    Desc = "Bypass leur anti-cheat de merde",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/e1998ee/adonisb1p3ss/refs/heads/main/NeptuneScripts"))()
+    end
+})
+
+local Button = Tab:Button({
+    Title = "Bypass Voice Chat",
+    Desc = "Bypass leur anti-ban voice de merde",
+    Locked = false,
+    Callback = function()
+        game:GetService("VoiceChatService"):joinVoice()
     end
 })
