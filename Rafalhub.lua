@@ -125,7 +125,7 @@ local Slider = Tab:Slider({
     -- To make float number supported, 
     -- make the Step a float number.
     -- example: Step = 0.1
-    Step = 1,
+    Step = 0.1,
     Value = {
         Min = 16,
         Max = 500,
