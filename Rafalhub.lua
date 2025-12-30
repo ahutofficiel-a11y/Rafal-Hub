@@ -297,3 +297,12 @@ local Button = Tab:Button({
         loadstring(game:HttpGet("https://raw.githubusercontent.com/as6cd0/SP_Hub/refs/heads/main/Brookhaven"))()
     end
 })
+
+local Button = Tab:Button({
+    Title = "Strasbourg",
+    Desc = "Devenir criminel (recherché par la police)",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Fire-all-remote-events-77205"))()
+    end
+})
