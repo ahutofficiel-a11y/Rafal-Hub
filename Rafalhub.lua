@@ -96,10 +96,6 @@ local Dialog = Window:Dialog({
             end,
         },
         {
-            Title = "Cancel",
-            Callback = function()
-                print("Cancelled!")
-            end,
         },
     },
 })
@@ -120,15 +116,15 @@ WindUI:Notify({
 
 local Slider = Tab:Slider({
     Title = "WalkSpeed",
-    Desc = "Change you walkspeed",
+    Desc = "Change you speed of walk",
     
     -- To make float number supported, 
     -- make the Step a float number.
     -- example: Step = 0.1
-    Step = 0.1,
+    Step = 1,
     Value = {
         Min = 16,
-        Max = 500,
+        Max = 300,
         Default = 16,
     },
     Callback = function(value)
@@ -214,12 +210,6 @@ local Tab = Window:Tab({
     Locked = false,
 })
 
-local Section = Window:Section({
-    Title = "Others menu Section",
-    Icon = "bird",
-    Opened = true,
-})
-
 local Button = Tab:Button({
     Title = "Infinity Yeld",
     Desc = "CMD for all games",
@@ -253,6 +243,15 @@ local Button = Tab:Button({
     Locked = false,
     Callback = function()
         loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/6203d711b7531ea5ce99f5877762ec82.lua"))()
+    end
+})
+
+local Button = Tab:Button({
+    Title = "Bueno HUB",
+    Desc = "For Secours de France and others games",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://api.junkie-development.de/api/v1/luascripts/public/aed6581ff321a1e49a3413109a9fcba9da62f43863dbf6fb8e63045803d4ab63/download"))()
     end
 })
 
