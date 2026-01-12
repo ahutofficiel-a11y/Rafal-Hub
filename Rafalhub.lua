@@ -78,12 +78,6 @@ local Tab = Window:Tab({
     Locked = false,
 })
 
-local Section = Window:Section({
-    Title = "Universal",
-    Icon = "bird",
-    Opened = true,
-})
-
 local Dialog = Window:Dialog({
     Icon = "bird",
     Title = "All cheat basic",
