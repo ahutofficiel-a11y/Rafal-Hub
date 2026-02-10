@@ -154,6 +154,24 @@ local Button = Tab:Button({
 })
 
 local Button = Tab:Button({
+    Title = "Invisible",
+    Desc = "Invisible",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Documantation12/Universal-Invisibility-V2/main/Main.lua"))()
+    end
+})
+
+local Button = Tab:Button({
+    Title = "Givetools",
+    Desc = "Givetools pour tous les jeux",
+    Locked = false,
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/new-gugus/NeptuneScripts/main/Givetools.lua"))()
+    end
+})
+
+local Button = Tab:Button({
     Title = "Fly",
     Desc = "Fly for all games",
     Locked = false,
