@@ -161,6 +161,15 @@ local Button = Tab:Button({
 })
 
 local Button = Tab:Button({
+    Title = "Sound Exploit",
+    Desc = "Play Music in the server",
+    Locked = false,
+    Callback = function()
+         loadstring(game:HttpGet("https://raw.githubusercontent.com/Roblox-HttpSpy/AC6-Music-Exploit/refs/heads/main/Ac6ExploitSource.luau"))()
+    end
+})
+
+local Button = Tab:Button({
     Title = "Staff in service",
     Desc = "Notify you",
     Locked = false,
