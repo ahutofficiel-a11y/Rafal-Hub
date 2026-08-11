@@ -1,73 +1,175 @@
 -- LocalScript dans StarterPlayerScripts
-local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
-local camera = workspace.CurrentCamera
-local RunService = game:GetService("RunService")
+
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
 
 local aimlockEnabled = false
 local lockedTarget = nil
 
--- Fonction wall check moderne
-local function canSee(target)
-    local origin = camera.CFrame.Position
-    local targetPos = target.Head.Position
-    local rayParams = RaycastParams.new()
-    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
-    rayParams.FilterDescendantsInstances = {player.Character}
+-- Configuration
+local MAX_FOV = 250 -- Distance maximale autour de la souris
+local SMOOTHNESS = 0.18 -- 0 = instantané, 1 = très lent
 
-    local result = workspace:Raycast(origin, targetPos - origin, rayParams)
-    if result then
-        return result.Instance:IsDescendantOf(target)
-    else
-        return true
-    end
+-- Vérifie si une partie du personnage est visible
+local function canSee(character)
+	local head = character:FindFirstChild("Head")
+	if not head then
+		return false
+	end
+
+	local origin = camera.CFrame.Position
+	local direction = head.Position - origin
+
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Exclude
+	rayParams.FilterDescendantsInstances = {
+		player.Character
+	}
+
+	local result = workspace:Raycast(origin, direction, rayParams)
+
+	if not result then
+		return true
+	end
+
+	return result.Instance:IsDescendantOf(character)
 end
 
--- Trouver l'ennemi le plus proche
+-- Vérifie si le joueur peut être ciblé
+local function isValidTarget(otherPlayer)
+	if otherPlayer == player then
+		return false
+	end
+
+	local character = otherPlayer.Character
+	if not character then
+		return false
+	end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local head = character:FindFirstChild("Head")
+
+	if not humanoid or not head then
+		return false
+	end
+
+	if humanoid.Health <= 0 then
+		return false
+	end
+
+	-- Ignore les coéquipiers
+	if player.Team and otherPlayer.Team == player.Team then
+		return false
+	end
+
+	return true
+end
+
+-- Trouve la cible la plus proche de la souris
 local function getClosestTarget()
-    local closest = nil
-    local shortestDist = math.huge
+	local mousePosition = UserInputService:GetMouseLocation()
 
-    for _, otherPlayer in pairs(Players:GetPlayers()) do
-        if otherPlayer ~= player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Humanoid") and otherPlayer.Character:FindFirstChild("Head") then
-            -- Ne pas lock les coéquipiers
-            if player.Team and otherPlayer.Team == player.Team then
-                continue
-            end
+	local closestCharacter = nil
+	local shortestDistance = MAX_FOV
 
-            local headPos = otherPlayer.Character.Head.Position
-            local screenPos, onScreen = camera:WorldToViewportPoint(headPos)
-            if onScreen and canSee(otherPlayer.Character) then
-                local mouseDist = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(screenPos.X, screenPos.Y)).Magnitude
-                if mouseDist < shortestDist then
-                    shortestDist = mouseDist
-                    closest = otherPlayer.Character
-                end
-            end
-        end
-    end
+	for _, otherPlayer in ipairs(Players:GetPlayers()) do
+		if isValidTarget(otherPlayer) then
+			local character = otherPlayer.Character
+			local head = character.Head
 
-    return closest
+			local screenPosition, onScreen =
+				camera:WorldToViewportPoint(head.Position)
+
+			if onScreen and screenPosition.Z > 0 then
+				local distance = (
+					Vector2.new(screenPosition.X, screenPosition.Y)
+					- mousePosition
+				).Magnitude
+
+				if distance < shortestDistance and canSee(character) then
+					shortestDistance = distance
+					closestCharacter = character
+				end
+			end
+		end
+	end
+
+	return closestCharacter
 end
 
--- Activer aimlock quand clic droit est appuyé
-mouse.Button2Down:Connect(function()
-    aimlockEnabled = true
+-- Vérifie que la cible actuelle est toujours valide
+local function isTargetValid(character)
+	if not character then
+		return false
+	end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local head = character:FindFirstChild("Head")
+
+	if not humanoid or not head or humanoid.Health <= 0 then
+		return false
+	end
+
+	if not canSee(character) then
+		return false
+	end
+
+	return true
+end
+
+-- Activation avec clic droit
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then
+		return
+	end
+
+	if input.UserInputType == Enum.UserInputType.MouseButton2 then
+		aimlockEnabled = true
+		lockedTarget = getClosestTarget()
+	end
 end)
 
--- Désactiver aimlock quand clic droit relâché
-mouse.Button2Up:Connect(function()
-    aimlockEnabled = false
-    lockedTarget = nil
+-- Désactivation avec relâchement du clic droit
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton2 then
+		aimlockEnabled = false
+		lockedTarget = nil
+	end
 end)
 
 -- Boucle de visée
 RunService.RenderStepped:Connect(function()
-    if aimlockEnabled then
-        lockedTarget = getClosestTarget()
-        if lockedTarget and lockedTarget:FindFirstChild("Head") then
-            camera.CFrame = CFrame.new(camera.CFrame.Position, lockedTarget.Head.Position)
-        end
-    end
+	if not aimlockEnabled then
+		return
+	end
+
+	-- Cherche une nouvelle cible uniquement si nécessaire
+	if not isTargetValid(lockedTarget) then
+		lockedTarget = getClosestTarget()
+	end
+
+	if not lockedTarget then
+		return
+	end
+
+	local head = lockedTarget:FindFirstChild("Head")
+	if not head then
+		lockedTarget = nil
+		return
+	end
+
+	-- Visée progressive
+	local targetCFrame = CFrame.lookAt(
+		camera.CFrame.Position,
+		head.Position
+	)
+
+	camera.CFrame = camera.CFrame:Lerp(
+		targetCFrame,
+		SMOOTHNESS
+	)
 end)
